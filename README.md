@@ -1,6 +1,15 @@
-# <PROJECT_NAME>
+# ape_keyring
 
-TODO: Description
+Store secrets for ape using Keyring.
+
+Pros and Cons (Is `ape-keyring` right for you?):
+
+1. An alternative to the keyfile accounts.
+   1. Always unlocked while the user is logged in to the device.
+   2. Secrets are never stored in plain text and only accessed when needed.
+2. An alternative for environment variables.
+   1. ENV VARs don't have the best UX. Keyring works under-the-hood.
+   2. ENV VARs are keys stored in plain text. Keyring is encrypted storage.
 
 ## Dependencies
 
@@ -13,7 +22,7 @@ TODO: Description
 You can install the latest release via [`pip`](https://pypi.org/project/pip/):
 
 ```bash
-pip install <PYPI_NAME>
+pip install ape-keyring
 ```
 
 ### via `setuptools`
@@ -21,14 +30,18 @@ pip install <PYPI_NAME>
 You can clone the repository and use [`setuptools`](https://github.com/pypa/setuptools) for the most up-to-date version:
 
 ```bash
-git clone https://github.com/ApeWorX/<PYPI_NAME>.git
-cd <PYPI_NAME>
+git clone https://github.com/ApeWorX/ape-keyring.git
+cd ape_keyring
 python3 setup.py install
 ```
 
 ## Quick Usage
 
-TODO: Describe library overview in code
+Add accounts to keyring:
+
+```bash
+ape keyring import
+```
 
 ## Development
 
