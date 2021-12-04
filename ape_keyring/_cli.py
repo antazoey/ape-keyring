@@ -51,7 +51,8 @@ def _import(cli_ctx, alias):
         cli_ctx.abort(f"Key can't be imported: {error}")
         return
 
-    container.create_account(alias, key)
+    passphrase = click.prompt("Enter additional passphrase (optional)")
+    container.create_account(alias, key, passphrase=passphrase)
     cli_ctx.logger.success(
         f"A new account '{account.address}' has been added with the id '{alias}'"
     )
@@ -64,5 +65,7 @@ def delete(cli_ctx, alias):
     """
     Delete an account from keyring
     """
-    container.delete_account(alias)
+    account = container.load(alias)
+    passphrase = click.prompt("Account passphrase") if account.uses_passphrase else None
+    container.delete_account(alias, passphrase=passphrase)
     cli_ctx.logger.success(f"Account '{alias}' removed from keying.")

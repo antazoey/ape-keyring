@@ -5,6 +5,7 @@ from typing import Dict, Iterator, Optional
 import click
 from ape.api import AccountAPI, AccountContainerAPI, TransactionAPI
 from ape.convert import to_address
+from ape.exceptions import AccountsError
 from ape.types import AddressType, MessageSignature, TransactionSignature
 from eth_account import Account as EthAccount  # type: ignore
 from eth_account.messages import SignableMessage
@@ -23,12 +24,19 @@ class KeyringAccountContainer(AccountContainerAPI):
         for p in self._account_files:
             yield p.stem
 
+    def load(self, alias: str) -> "KeyringAccount":
+        for account_alias in self._account_files:
+            if alias == account_alias:
+                return KeyringAccount(self, alias)
+
+        raise AccountsError(f"No keyring account named '{alias}'.")
+
     def __len__(self) -> int:
         return len([*self._account_files])
 
     def __iter__(self) -> Iterator[AccountAPI]:
-        for account_name in self._account_files:
-            yield KeyringAccount(self, account_name)  # type: ignore
+        for alias in self._account_files:
+            yield KeyringAccount(self, alias)  # type: ignore
 
     def __setitem__(self, address: AddressType, account: AccountAPI):
         pass
@@ -36,21 +44,31 @@ class KeyringAccountContainer(AccountContainerAPI):
     def __delitem__(self, address: AddressType):
         pass
 
-    def create_account(self, alias: str, key: str):
+    def create_account(self, alias: str, key: str, passphrase: Optional[str] = None):
         path = self.data_folder.joinpath(f"{alias}.json")
         account = EthAccount.from_key(to_bytes(hexstr=key))
         set_secret(alias, key)
-        path.write_text(json.dumps({"address": account.address}))
-        set_secret(alias, key)
+        path.write_text(
+            json.dumps({"address": account.address, "uses_passphrase": passphrase is not None})
+        )
+        set_secret(alias, key, passphrase=passphrase)
 
-    def delete_account(self, alias: str):
-        path = self.data_folder.joinpath(f"{alias}.json")
-        path.unlink(missing_ok=True)
-        delete_secret(alias)
+    def delete_account(self, alias: str, passphrase: Optional[str] = None):
+        account = KeyringAccount(self, alias)
+
+        if account.uses_passphrasea and passphrase is None:
+            raise AccountsError("Passphrase required.")
+
+        account.path.unlink(missing_ok=True)
+        delete_secret(alias, passphrase=passphrase)
 
 
 class KeyringAccount(AccountAPI):
     _account_file: Path
+
+    @property
+    def path(self) -> Path:
+        return self._account_file
 
     @property
     def account_file(self) -> Dict:
@@ -61,12 +79,19 @@ class KeyringAccount(AccountAPI):
         return self._account_file.stem
 
     @property
+    def uses_passphrase(self) -> bool:
+        return self.account_file["uses_passphrase"]
+
+    @property
     def address(self) -> AddressType:
         return to_address(self.account_file["address"])
 
     @property
     def __key(self) -> str:
-        return get_secret(self.alias)
+        passphrase = (
+            click.prompt(f"Account passphrase for '{self.alias}'") if self.uses_passphrase else None
+        )
+        return get_secret(self.alias, passphrase=passphrase)
 
     def sign_message(self, msg: SignableMessage) -> Optional[MessageSignature]:
         if not click.confirm(f"{msg}\n\nSign: "):
