@@ -1,10 +1,9 @@
 import click
 from ape import accounts
 from ape.cli import ape_cli_context, existing_alias_argument, non_existing_alias_argument
-from eth_account import Account as EthAccount  # type: ignore
-from eth_utils import to_bytes
 
 from ape_keyring.accounts import KeyringAccount
+from ape_keyring.utils import get_address
 
 container = accounts.containers["keyring"]
 
@@ -15,7 +14,13 @@ def cli():
     pass
 
 
-@cli.command("list")
+@cli.group("accounts")
+def account_cli():
+    """Manage accounts"""
+    pass
+
+
+@account_cli.command("list")
 @ape_cli_context()
 def _list(cli_ctx):
     """
@@ -37,7 +42,7 @@ def _list(cli_ctx):
         click.echo(f"  {account.address}{alias_display}")
 
 
-@cli.command(name="import")
+@account_cli.command(name="import")
 @non_existing_alias_argument()
 @ape_cli_context()
 def _import(cli_ctx, alias):
@@ -45,27 +50,21 @@ def _import(cli_ctx, alias):
     Add a new keyfile account by entering a private key
     """
     key = click.prompt("Enter Private Key", hide_input=True)
-    try:
-        account = EthAccount.from_key(to_bytes(hexstr=key))
-    except Exception as error:
-        cli_ctx.abort(f"Key can't be imported: {error}")
+    address = get_address(key)
+    if not address:
+        cli_ctx.abort("Key could not be imported.")
         return
 
-    passphrase = click.prompt("Enter additional passphrase (optional)")
-    container.create_account(alias, key, passphrase=passphrase)
-    cli_ctx.logger.success(
-        f"A new account '{account.address}' has been added with the id '{alias}'"
-    )
+    container.create_account(alias, key)
+    cli_ctx.logger.success(f"A new account '{address}' has been added with the ID '{alias}'.")
 
 
-@cli.command()
+@account_cli.command()
 @ape_cli_context()
 @existing_alias_argument()
 def delete(cli_ctx, alias):
     """
     Delete an account from keyring
     """
-    account = container.load(alias)
-    passphrase = click.prompt("Account passphrase") if account.uses_passphrase else None
-    container.delete_account(alias, passphrase=passphrase)
+    container.delete_account(alias)
     cli_ctx.logger.success(f"Account '{alias}' removed from keying.")

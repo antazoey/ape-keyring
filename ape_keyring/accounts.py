@@ -1,42 +1,33 @@
-import json
-from pathlib import Path
-from typing import Dict, Iterator, Optional
+from typing import Iterator, List, Optional
 
 import click
 from ape.api import AccountAPI, AccountContainerAPI, TransactionAPI
-from ape.convert import to_address
-from ape.exceptions import AccountsError
 from ape.types import AddressType, MessageSignature, TransactionSignature
+from ape.utils import cached_property
 from eth_account import Account as EthAccount  # type: ignore
 from eth_account.messages import SignableMessage
-from eth_utils import to_bytes
 
-from ape_keyring.manager import delete_secret, get_secret, set_secret
+from ape_keyring.exceptions import EmptyAliasError
+from ape_keyring.storage import AccountStorage
+from ape_keyring.utils import get_address
 
 
 class KeyringAccountContainer(AccountContainerAPI):
-    @property
-    def _account_files(self) -> Iterator[Path]:
-        return self.data_folder.glob("*.json")
+    storage: AccountStorage = AccountStorage()
 
     @property
-    def aliases(self) -> Iterator[str]:
-        for p in self._account_files:
-            yield p.stem
+    def aliases(self) -> List[str]:
+        return [a for a in self.storage.account_keys if a]
 
     def load(self, alias: str) -> "KeyringAccount":
-        for account_alias in self._account_files:
-            if alias == account_alias:
-                return KeyringAccount(self, alias)
-
-        raise AccountsError(f"No keyring account named '{alias}'.")
+        return KeyringAccount(_storage_key=alias, container=self)
 
     def __len__(self) -> int:
-        return len([*self._account_files])
+        return len([a for a in self.aliases])
 
     def __iter__(self) -> Iterator[AccountAPI]:
-        for alias in self._account_files:
-            yield KeyringAccount(self, alias)  # type: ignore
+        for alias in self.aliases:
+            yield KeyringAccount(_storage_key=alias, container=self)  # type: ignore
 
     def __setitem__(self, address: AddressType, account: AccountAPI):
         pass
@@ -44,54 +35,37 @@ class KeyringAccountContainer(AccountContainerAPI):
     def __delitem__(self, address: AddressType):
         pass
 
-    def create_account(self, alias: str, key: str, passphrase: Optional[str] = None):
-        path = self.data_folder.joinpath(f"{alias}.json")
-        account = EthAccount.from_key(to_bytes(hexstr=key))
-        set_secret(alias, key)
-        path.write_text(
-            json.dumps({"address": account.address, "uses_passphrase": passphrase is not None})
-        )
-        set_secret(alias, key, passphrase=passphrase)
+    def create_account(self, alias: str, secret: str):
+        if not alias:
+            raise EmptyAliasError()
 
-    def delete_account(self, alias: str, passphrase: Optional[str] = None):
-        account = KeyringAccount(self, alias)
+        self.storage.create_account(alias, secret)
 
-        if account.uses_passphrasea and passphrase is None:
-            raise AccountsError("Passphrase required.")
+    def delete_account(self, alias: str):
+        if not alias:
+            raise EmptyAliasError()
 
-        account.path.unlink(missing_ok=True)
-        delete_secret(alias, passphrase=passphrase)
+        self.storage.delete_account(alias)
 
 
 class KeyringAccount(AccountAPI):
-    _account_file: Path
-
-    @property
-    def path(self) -> Path:
-        return self._account_file
-
-    @property
-    def account_file(self) -> Dict:
-        return json.loads(self._account_file.read_text())
+    _storage_key: str
+    _address: Optional[AddressType] = None
 
     @property
     def alias(self) -> str:
-        return self._account_file.stem
+        return self._storage_key
 
-    @property
-    def uses_passphrase(self) -> bool:
-        return self.account_file["uses_passphrase"]
-
-    @property
+    @cached_property
     def address(self) -> AddressType:
-        return to_address(self.account_file["address"])
+        if not self._address:
+            self._address = get_address(self.__key)
+
+        return self._address
 
     @property
     def __key(self) -> str:
-        passphrase = (
-            click.prompt(f"Account passphrase for '{self.alias}'") if self.uses_passphrase else None
-        )
-        return get_secret(self.alias, passphrase=passphrase)
+        return self.container.storage.get_account(self._storage_key)
 
     def sign_message(self, msg: SignableMessage) -> Optional[MessageSignature]:
         if not click.confirm(f"{msg}\n\nSign: "):
