@@ -42,7 +42,7 @@ class SecretStorage:
             List[str]
         """
 
-        return [k for k in self.keys_str.split(",") if k]
+        return list(set([k for k in self.keys_str.split(",") if k]))
 
     def get_secret(self, key: str) -> Optional[str]:
         """

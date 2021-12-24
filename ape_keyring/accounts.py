@@ -1,5 +1,6 @@
 from typing import Iterator, Optional
 
+import click
 from ape.api import AccountAPI, AccountContainerAPI, TransactionAPI
 from ape.types import AddressType, MessageSignature, TransactionSignature
 from ape.utils import cached_property
@@ -15,17 +16,20 @@ from ape_keyring.utils import get_address
 class KeyringAccountContainer(AccountContainerAPI):
     @property
     def aliases(self) -> Iterator[str]:
-        yield from account_storage.keys
+        for alias in account_storage.keys:
+            if alias:
+                yield alias
 
     def load(self, alias: str) -> "KeyringAccount":
         return KeyringAccount(_alias=alias, container=self)  # type: ignore
 
     def __len__(self) -> int:
-        return len([a for a in self.aliases])
+        return len([a for a in self.aliases if a])
 
     def __iter__(self) -> Iterator[AccountAPI]:
         for alias in self.aliases:
-            yield KeyringAccount(_alias=alias, container=self)  # type: ignore
+            if alias:
+                yield KeyringAccount(_alias=alias, container=self)  # type: ignore
 
     def __setitem__(self, address: AddressType, account: AccountAPI):
         pass
@@ -74,12 +78,18 @@ class KeyringAccount(AccountAPI):
         return key
 
     def sign_message(self, msg: SignableMessage) -> Optional[MessageSignature]:
+        if not click.prompt(f"Sign message: {msg}"):
+            return None
+
         signed_msg = EthAccount.sign_message(msg, self.__key)
         return MessageSignature(
             v=signed_msg.v, r=to_bytes(signed_msg.r), s=to_bytes(signed_msg.s)
         )  # type: ignore
 
     def sign_transaction(self, txn: TransactionAPI) -> Optional[TransactionSignature]:
+        if click.prompt(f"Sign transaction: {txn}\n(Y/n)").upper() not in ["Y"]:
+            return None
+
         signed_txn = EthAccount.sign_transaction(txn.as_dict(), self.__key)
         return TransactionSignature(
             v=signed_txn.v, r=to_bytes(signed_txn.r), s=to_bytes(signed_txn.s)

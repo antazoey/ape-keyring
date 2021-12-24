@@ -32,10 +32,8 @@ def _list(cli_ctx):
         cli_ctx.logger.warning("No accounts found.")
         return
 
-    num_accounts = len(accounts)
-    header = f"Found {num_accounts} account"
-    header += "s:" if num_accounts > 1 else ":"
-    click.echo(header)
+    num_accounts = len(keyring_accounts)
+    click.echo(f"Found {num_accounts} account{'s' if num_accounts > 1 else ''}:")
 
     for account in keyring_accounts:
         alias_display = f" (alias: '{account.alias}')" if account.alias else ""
@@ -49,7 +47,7 @@ def _import(cli_ctx, alias):
     """
     Add a new keyfile account by entering a private key
     """
-    key = click.prompt("Enter Private Key", hide_input=True)
+    key = click.prompt("Enter the private key", hide_input=True)
     address = get_address(key)
     if not address:
         cli_ctx.abort("Key could not be imported.")
