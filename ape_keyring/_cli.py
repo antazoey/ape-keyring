@@ -68,3 +68,13 @@ def delete(cli_ctx, alias):
     """
     container.delete_account(alias)
     cli_ctx.logger.success(f"Account '{alias}' removed from keying.")
+
+
+@account_cli.command()
+@ape_cli_context()
+def delete_all(cli_ctx):
+    """
+    Delete all keyring accounts
+    """
+    container.delete_all()
+    cli_ctx.logger.success("Deleted all keyring accounts.")

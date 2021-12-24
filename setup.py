@@ -53,6 +53,7 @@ setup(
     url="https://github.com/unparalleled-js/ape-keyring",
     include_package_data=True,
     install_requires=[
+        "click>=8.0.3",
         "eth-ape>=0.1.0b2",
         "eth-account>=0.5.6,<0.6.0",
         "eth-utils>=1.10.0,<1.11",

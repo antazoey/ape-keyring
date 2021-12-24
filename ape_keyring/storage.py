@@ -1,61 +1,112 @@
-from typing import List
+from typing import List, Optional
 
 import keyring
+from ape.logging import logger
+from keyring.errors import PasswordDeleteError
 
-_PRODUCT = "eth-ape"
+SERVICE_NAME = "ape-keyring"
+ACCOUNTS_TRACKER_KEY = "ape-keyring-aliases"
+ENVIRONMENT_VARIABLES_TRACKER_KEY = "ape-keyring-env-vars"
 
 
-class AccountStorage:
-    ALIAS_LIST_KEY = "ape-keyring-aliases"
-
-    @property
-    def _account_keys_str(self) -> str:
-        return get_secret(self.ALIAS_LIST_KEY) or ""
-
-    @property
-    def account_keys(self) -> List[str]:
+class SecretStorage:
+    def __init__(self, tracker_key: str):
         """
-        The account aliases managed by the ``ape-keyring`` plugin.
+        Initialize a new base-storage class.
+
+        Args:
+            tracker_key (str): The key-name for storing a comma-separated list
+              of items tracked.
+        """
+
+        self._tracker_key = tracker_key
+
+    @property
+    def keys_str(self) -> str:
+        """
+        A stored, comma-separated list of items. This is for knowing which items
+        we have stored.
+
+        Returns:
+            str
+        """
+
+        return _get_secret(self._tracker_key) or ""
+
+    @property
+    def keys(self) -> List[str]:
+        """
+        A list of stored item keys. Each key can unlock a secret.
 
         Returns:
             List[str]
         """
-        return [k for k in self._account_keys_str.split(",") if k]
 
-    def create_account(self, key: str, secret: str):
+        return [k for k in self.keys_str.split(",") if k]
+
+    def get_secret(self, key: str) -> Optional[str]:
         """
-        Add an account to the keyring storage.
+        Get a secret.
 
         Args:
-            key (str): The account key for look-up, e.g. the alias.
-            secret (str): The account's private key.
+            key (str): The key for the secret, such as an account alias
+              or environment variable name.
+
+        Returns:
+            str: The secret value from the OS secure-storage.
         """
-        self._append_new_account_key(key)
-        set_secret(key, secret)
+        if key not in self.keys:
+            return None
 
-    def get_account(self, key: str) -> str:
-        return get_secret(key)
+        return _get_secret(key)
 
-    def delete_account(self, key: str):
-        delete_secret(key)
-        self._remove_account_key(key)
+    def store_secret(self, key: str, secret: str):
+        """
+        Add a new item to be tracked.
 
-    def _append_new_account_key(self, new_key: str):
-        new_value = f"{self._account_keys_str},{new_key}" if self._account_keys_str else new_key
-        set_secret(self.ALIAS_LIST_KEY, new_value)
+        Args:
+            key (str): The new key for the item.
+            secret (str): The value of the secret to store.
+        """
 
-    def _remove_account_key(self, key: str):
-        new_value = ",".join([k for k in self.account_keys if k != key])
-        set_secret(self.ALIAS_LIST_KEY, new_value)
+        if key not in self.keys:
+            new_keys_str = f"{self.keys_str},{key}" if self.keys_str else key
+            _set_secret(self._tracker_key, new_keys_str)
+
+        _set_secret(key, secret)
+
+    def delete_secret(self, key: str):
+        if key in self.keys:
+            new_keys_str = ",".join([k for k in self.keys if k != key])
+            _set_secret(self._tracker_key, new_keys_str)
+
+        _delete_secret(key)
+
+    def delete_all(self):
+        for key in self.keys:
+            _delete_secret(key)
+
+        _delete_secret(self._tracker_key)
 
 
-def get_secret(key: str) -> str:
-    return keyring.get_password(_PRODUCT, key)
+account_storage = SecretStorage(ACCOUNTS_TRACKER_KEY)
+"""A storage class for storing account private-keys."""
+
+environment_variable_storage = SecretStorage(ENVIRONMENT_VARIABLES_TRACKER_KEY)
+"""A storage class for storing environment variables."""
 
 
-def set_secret(key: str, secret: str):
-    keyring.set_password(_PRODUCT, key, secret)
+def _get_secret(key: str) -> str:
+    return keyring.get_password(SERVICE_NAME, key)
 
 
-def delete_secret(key: str):
-    keyring.delete_password(_PRODUCT, key)
+def _set_secret(key: str, secret: str):
+    keyring.set_password(SERVICE_NAME, key, secret)
+
+
+def _delete_secret(key: str):
+    try:
+        keyring.delete_password(SERVICE_NAME, key)
+    except PasswordDeleteError:
+        logger.debug(f"Failed to delete '{key}' - it does not exist.")
+        return

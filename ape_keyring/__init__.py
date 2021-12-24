@@ -4,7 +4,7 @@ from ape import plugins
 
 from .accounts import KeyringAccount, KeyringAccountContainer
 from .config import KeyringConfig
-from .storage import get_secret
+from .storage import _get_secret
 
 
 @plugins.register(plugins.Config)
@@ -22,6 +22,6 @@ def load_keyring_env():
 
     env = config.get_config("keyring").env
     for var_name in env:
-        secret = get_secret(var_name)
+        secret = _get_secret(var_name)
         if secret:
             os.environ[var_name] = secret

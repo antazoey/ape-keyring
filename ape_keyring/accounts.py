@@ -1,33 +1,31 @@
-from typing import Iterator, List, Optional
+from typing import Iterator, Optional
 
-import click
 from ape.api import AccountAPI, AccountContainerAPI, TransactionAPI
 from ape.types import AddressType, MessageSignature, TransactionSignature
 from ape.utils import cached_property
 from eth_account import Account as EthAccount  # type: ignore
 from eth_account.messages import SignableMessage
+from eth_utils import to_bytes
 
-from ape_keyring.exceptions import EmptyAliasError
-from ape_keyring.storage import AccountStorage
+from ape_keyring.exceptions import ApeKeyringError, EmptyAliasError
+from ape_keyring.storage import account_storage
 from ape_keyring.utils import get_address
 
 
 class KeyringAccountContainer(AccountContainerAPI):
-    storage: AccountStorage = AccountStorage()
-
     @property
-    def aliases(self) -> List[str]:
-        return [a for a in self.storage.account_keys if a]
+    def aliases(self) -> Iterator[str]:
+        yield from account_storage.keys
 
     def load(self, alias: str) -> "KeyringAccount":
-        return KeyringAccount(_storage_key=alias, container=self)
+        return KeyringAccount(_alias=alias, container=self)  # type: ignore
 
     def __len__(self) -> int:
         return len([a for a in self.aliases])
 
     def __iter__(self) -> Iterator[AccountAPI]:
         for alias in self.aliases:
-            yield KeyringAccount(_storage_key=alias, container=self)  # type: ignore
+            yield KeyringAccount(_alias=alias, container=self)  # type: ignore
 
     def __setitem__(self, address: AddressType, account: AccountAPI):
         pass
@@ -39,44 +37,50 @@ class KeyringAccountContainer(AccountContainerAPI):
         if not alias:
             raise EmptyAliasError()
 
-        self.storage.create_account(alias, secret)
+        account_storage.store_secret(alias, secret)
 
     def delete_account(self, alias: str):
         if not alias:
             raise EmptyAliasError()
 
-        self.storage.delete_account(alias)
+        account_storage.delete_secret(alias)
+
+    def delete_all(self):
+        account_storage.delete_all()
 
 
 class KeyringAccount(AccountAPI):
-    _storage_key: str
+    _alias: str
     _address: Optional[AddressType] = None
 
     @property
     def alias(self) -> str:
-        return self._storage_key
+        return self._alias
 
     @cached_property
     def address(self) -> AddressType:
         if not self._address:
             self._address = get_address(self.__key)
 
+        assert self._address is not None  # for mypy
         return self._address
 
     @property
     def __key(self) -> str:
-        return self.container.storage.get_account(self._storage_key)
+        key = account_storage.get_secret(self._alias)
+        if not key:
+            raise ApeKeyringError(f"Missing secret for account '{self._alias}'.")
+
+        return key
 
     def sign_message(self, msg: SignableMessage) -> Optional[MessageSignature]:
-        if not click.confirm(f"{msg}\n\nSign: "):
-            return None
-
         signed_msg = EthAccount.sign_message(msg, self.__key)
-        return MessageSignature(v=signed_msg.v, r=signed_msg.r, s=signed_msg.s)  # type: ignore
+        return MessageSignature(
+            v=signed_msg.v, r=to_bytes(signed_msg.r), s=to_bytes(signed_msg.s)
+        )  # type: ignore
 
     def sign_transaction(self, txn: TransactionAPI) -> Optional[TransactionSignature]:
-        if not click.confirm(f"{txn}\n\nSign: "):
-            return None
-
         signed_txn = EthAccount.sign_transaction(txn.as_dict(), self.__key)
-        return TransactionSignature(v=signed_txn.v, r=signed_txn.r, s=signed_txn.s)  # type: ignore
+        return TransactionSignature(
+            v=signed_txn.v, r=to_bytes(signed_txn.r), s=to_bytes(signed_txn.s)
+        )  # type: ignore
