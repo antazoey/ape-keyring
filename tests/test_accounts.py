@@ -20,6 +20,7 @@ def test_accounts(cli, runner, test_account):
     # Verify can sign
     eip191message = encode_defunct(text="Hello Test")
     account = accounts.load(TEST_ALIAS)
+    account.skip_prompt = True
     signature = account.sign_message(eip191message)
     signature_bytes = signature.encode_rsv()
     signer = Account.recover_message(eip191message, signature=signature_bytes)

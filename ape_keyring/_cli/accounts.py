@@ -5,16 +5,8 @@ from ape.cli import ape_cli_context, existing_alias_argument, non_existing_alias
 from ape_keyring.accounts import KeyringAccount
 from ape_keyring.utils import get_address
 
-container = accounts.containers["keyring"]
 
-
-@click.group("keyring")
-def cli():
-    """Manage accounts and secrets"""
-    pass
-
-
-@cli.group("accounts")
+@click.group("accounts")
 def account_cli():
     """Manage accounts"""
     pass
@@ -28,7 +20,7 @@ def _list(cli_ctx):
     """
     keyring_accounts = [a for a in accounts if isinstance(a, KeyringAccount)]
 
-    if len(keyring_accounts) == 0:
+    if not keyring_accounts:
         cli_ctx.logger.warning("No accounts found.")
         return
 
@@ -53,6 +45,7 @@ def _import(cli_ctx, alias):
         cli_ctx.abort("Key could not be imported.")
         return
 
+    container = accounts.containers["keyring"]
     container.create_account(alias, key)
     cli_ctx.logger.success(f"A new account '{address}' has been added with the ID '{alias}'.")
 
@@ -64,6 +57,7 @@ def delete(cli_ctx, alias):
     """
     Delete an account from keyring
     """
+    container = accounts.containers["keyring"]
     container.delete_account(alias)
     cli_ctx.logger.success(f"Account '{alias}' removed from keying.")
 
@@ -74,5 +68,6 @@ def delete_all(cli_ctx):
     """
     Delete all keyring accounts
     """
+    container = accounts.containers["keyring"]
     container.delete_all()
     cli_ctx.logger.success("Deleted all keyring accounts.")

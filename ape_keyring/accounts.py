@@ -1,6 +1,5 @@
 from typing import Iterator, Optional
 
-import click
 from ape.api import AccountAPI, AccountContainerAPI, TransactionAPI
 from ape.types import AddressType, MessageSignature, TransactionSignature
 from ape.utils import cached_property
@@ -8,9 +7,9 @@ from eth_account import Account as EthAccount  # type: ignore
 from eth_account.messages import SignableMessage
 from eth_utils import to_bytes
 
-from ape_keyring.exceptions import ApeKeyringError, EmptyAliasError
+from ape_keyring.exceptions import EmptyAliasError, MissingSecretError
 from ape_keyring.storage import account_storage
-from ape_keyring.utils import get_address
+from ape_keyring.utils import agree_to_sign, get_address
 
 
 class KeyringAccountContainer(AccountContainerAPI):
@@ -56,6 +55,7 @@ class KeyringAccountContainer(AccountContainerAPI):
 class KeyringAccount(AccountAPI):
     _alias: str
     _address: Optional[AddressType] = None
+    skip_prompt: bool = False
 
     @property
     def alias(self) -> str:
@@ -73,12 +73,12 @@ class KeyringAccount(AccountAPI):
     def __key(self) -> str:
         key = account_storage.get_secret(self._alias)
         if not key:
-            raise ApeKeyringError(f"Missing secret for account '{self._alias}'.")
+            raise MissingSecretError(self._alias)
 
         return key
 
     def sign_message(self, msg: SignableMessage) -> Optional[MessageSignature]:
-        if not click.prompt(f"Sign message: {msg}"):
+        if not self.skip_prompt and not agree_to_sign(msg, "message"):
             return None
 
         signed_msg = EthAccount.sign_message(msg, self.__key)
@@ -87,7 +87,7 @@ class KeyringAccount(AccountAPI):
         )  # type: ignore
 
     def sign_transaction(self, txn: TransactionAPI) -> Optional[TransactionSignature]:
-        if click.prompt(f"Sign transaction: {txn}\n(Y/n)").upper() not in ["Y"]:
+        if not self.skip_prompt and not agree_to_sign(txn, "transaction"):
             return None
 
         signed_txn = EthAccount.sign_transaction(txn.as_dict(), self.__key)
