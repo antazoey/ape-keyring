@@ -1,10 +1,6 @@
 from keyring.backend import KeyringBackend
 
-from ape_keyring.storage import (
-    ACCOUNTS_TRACKER_KEY,
-    ENVIRONMENT_VARIABLES_TRACKER_KEY,
-    SERVICE_NAME,
-)
+from ape_keyring.storage import ACCOUNTS_TRACKER_KEY, SECRETS_TRACKER_KEY, SERVICE_NAME
 
 
 def _require_ape(service_name: str, msg: str):
@@ -13,7 +9,7 @@ def _require_ape(service_name: str, msg: str):
 
 
 class MockBackend(KeyringBackend):
-    _storage = {ACCOUNTS_TRACKER_KEY: "", ENVIRONMENT_VARIABLES_TRACKER_KEY: ""}
+    _storage = {ACCOUNTS_TRACKER_KEY: "", SECRETS_TRACKER_KEY: ""}
 
     def set_password(self, servicename, username, password):
         _require_ape(servicename, "Saving non-ape secret.")

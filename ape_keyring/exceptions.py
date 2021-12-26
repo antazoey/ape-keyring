@@ -18,13 +18,13 @@ class EmptyAliasError(ApeKeyringAccountError):
         super().__init__("Alias cannot be empty.")
 
 
-class SecretAlreadyStoredError(ApeKeyringException):
+class SecretNotExistsError(ApeKeyringException):
     """
-    Raised when trying to store an already existing secret.
+    Raised when trying to use a secret that does not exist.
     """
 
     def __init__(self, env_var_key: str):
-        super().__init__(f"Environment variable '${env_var_key}' already stored.")
+        super().__init__(f"Secret '{env_var_key}' does not exist.")
 
 
 class MissingSecretError(ApeKeyringException):
@@ -33,4 +33,4 @@ class MissingSecretError(ApeKeyringException):
     """
 
     def __init__(self, alias: str):
-        super().__init__(f"Missing secret for account with alias '{self._alias}'.")
+        super().__init__(f"Missing secret for account with alias '{alias}'.")

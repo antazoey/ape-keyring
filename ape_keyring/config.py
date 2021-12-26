@@ -1,7 +1,5 @@
-from typing import List
-
 from ape.api import ConfigItem
 
 
 class KeyringConfig(ConfigItem):
-    env: List[str] = []
+    set_env_vars: bool = False

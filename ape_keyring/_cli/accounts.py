@@ -9,15 +9,13 @@ from ape_keyring.utils import get_address
 @click.group("accounts")
 def account_cli():
     """Manage accounts"""
-    pass
 
 
 @account_cli.command("list")
 @ape_cli_context()
 def _list(cli_ctx):
-    """
-    List keyring accounts.
-    """
+    """List accounts"""
+
     keyring_accounts = [a for a in accounts if isinstance(a, KeyringAccount)]
 
     if not keyring_accounts:
@@ -36,9 +34,8 @@ def _list(cli_ctx):
 @non_existing_alias_argument()
 @ape_cli_context()
 def _import(cli_ctx, alias):
-    """
-    Add a new keyfile account by entering a private key
-    """
+    """Add a new account"""
+
     key = click.prompt("Enter the private key", hide_input=True)
     address = get_address(key)
     if not address:
@@ -54,9 +51,8 @@ def _import(cli_ctx, alias):
 @ape_cli_context()
 @existing_alias_argument()
 def delete(cli_ctx, alias):
-    """
-    Delete an account from keyring
-    """
+    """Delete an account"""
+
     container = accounts.containers["keyring"]
     container.delete_account(alias)
     cli_ctx.logger.success(f"Account '{alias}' removed from keying.")
@@ -65,9 +61,8 @@ def delete(cli_ctx, alias):
 @account_cli.command()
 @ape_cli_context()
 def delete_all(cli_ctx):
-    """
-    Delete all keyring accounts
-    """
+    """Delete all keyring accounts"""
+
     container = accounts.containers["keyring"]
     container.delete_all()
     cli_ctx.logger.success("Deleted all keyring accounts.")

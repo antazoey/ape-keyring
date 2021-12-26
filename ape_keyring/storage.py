@@ -5,8 +5,8 @@ from ape.logging import logger
 from keyring.errors import PasswordDeleteError
 
 SERVICE_NAME = "ape-keyring"
-ACCOUNTS_TRACKER_KEY = "ape-keyring-aliases"
-ENVIRONMENT_VARIABLES_TRACKER_KEY = "ape-keyring-env-vars"
+ACCOUNTS_TRACKER_KEY = "ape-keyring-accounts"
+SECRETS_TRACKER_KEY = "ape-keyring-secrets"
 
 
 class SecretStorage:
@@ -20,6 +20,10 @@ class SecretStorage:
         """
 
         self._tracker_key = tracker_key
+
+    def __iter__(self):
+        for key in self.keys:
+            yield key, self.get_secret(key)
 
     @property
     def keys_str(self) -> str:
@@ -92,8 +96,8 @@ class SecretStorage:
 account_storage = SecretStorage(ACCOUNTS_TRACKER_KEY)
 """A storage class for storing account private-keys."""
 
-environment_variable_storage = SecretStorage(ENVIRONMENT_VARIABLES_TRACKER_KEY)
-"""A storage class for storing environment variables."""
+secret_storage = SecretStorage(SECRETS_TRACKER_KEY)
+"""A storage class for storing secrets."""
 
 
 def _get_secret(key: str) -> str:
