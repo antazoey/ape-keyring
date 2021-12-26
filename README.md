@@ -1,15 +1,6 @@
-# ape_keyring
+# ape-keyring
 
-Store secrets for ape using Keyring.
-
-Pros and Cons (Is `ape-keyring` right for you?):
-
-1. An alternative to the keyfile accounts.
-   1. Always unlocked while the user is logged in to the device.
-   2. Secrets are never stored in plain text and only accessed when needed.
-2. An alternative for environment variables.
-   1. ENV VARs don't have the best UX. Keyring works under-the-hood.
-   2. ENV VARs are keys stored in plain text. Keyring is encrypted storage.
+Store secrets and manage accounts for `ape` using [keyring](https://pypi.org/project/keyring/).
 
 ## Dependencies
 
@@ -40,7 +31,7 @@ python3 setup.py install
 Add accounts to keyring:
 
 ```bash
-ape keyring import
+ape keyring import keyring_dev_0
 ```
 
 ## Development
