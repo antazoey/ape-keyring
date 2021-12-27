@@ -37,12 +37,19 @@ ape keyring import keyring_dev_0
 To add secrets to keyring:
 
 ```bash
-ape keyring set WEB3_INFURA_PROJECT_ID
+ape keyring set WEB3_API_KEY
 ```
 
 and then when it prompts you, input the value to your secret.
 
-To enable your secrets to become environment variables, use the `ape-config.yaml` option `set_env_vars`:
+Optionally, scope your secrets to the active project.
+
+```bah
+ape keyring set DEPLOYMENT_SECRET --scope project 
+```
+
+To enable your secrets to become environment variables at runtime,
+use the `ape-config.yaml` option `set_env_vars`:
 
 ```yaml
 keyring:
