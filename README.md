@@ -34,6 +34,21 @@ Add accounts to keyring:
 ape keyring import keyring_dev_0
 ```
 
+To add secrets to keyring:
+
+```bash
+ape keyring set WEB3_INFURA_PROJECT_ID
+```
+
+and then when it prompts you, input the value to your secret.
+
+To enable your secrets to become environment variables, use the `ape-config.yaml` option `set_env_vars`:
+
+```yaml
+keyring:
+  set_env_vars: true
+```
+
 ## Development
 
 This project is in early development and should be considered an alpha.
