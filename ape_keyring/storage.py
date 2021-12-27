@@ -46,7 +46,14 @@ class SecretStorage:
             List[str]
         """
 
-        return list(set([k for k in self.keys_str.split(",") if k]))
+        keys = list(set([k for k in self.keys_str.split(",") if k and _get_secret(k)]))
+
+        if not keys:
+            return keys
+
+        new_keys_str = ",".join(keys)
+        _set_secret(self._tracker_key, new_keys_str)
+        return keys
 
     def get_secret(self, key: str) -> Optional[str]:
         """
@@ -84,7 +91,7 @@ class SecretStorage:
             new_keys_str = ",".join([k for k in self.keys if k != key])
             _set_secret(self._tracker_key, new_keys_str)
 
-        _delete_secret(key)
+        return _delete_secret(key)
 
     def delete_all(self):
         for key in self.keys:
@@ -105,12 +112,19 @@ def _get_secret(key: str) -> str:
 
 
 def _set_secret(key: str, secret: str):
+    if not key or not secret:
+        return
+
     keyring.set_password(SERVICE_NAME, key, secret)
 
 
 def _delete_secret(key: str):
+    if not key:
+        return False
+
     try:
         keyring.delete_password(SERVICE_NAME, key)
-    except PasswordDeleteError:
-        logger.debug(f"Failed to delete '{key}' - it does not exist.")
-        return
+        return True
+    except PasswordDeleteError as err:
+        logger.debug(err)
+        return False
