@@ -64,25 +64,32 @@ def _set(cli_ctx, secret, scope):
 @ape_cli_context()
 @secret_argument()
 @scope_option()
-def unset(cli_ctx, secret, scope):
+def delete(cli_ctx, secret, scope):
     """Remove a secret"""
 
     project_key = f"<<project={project.path.stem}>>"
     is_project_scoped = scope == "project"
-    key = f"{secret}{project_key}" if is_project_scoped else secret
+    projectified_key = f"{secret}{project_key}"
+    key = projectified_key if is_project_scoped else secret
     did_delete = secret_storage.delete_secret(key)
     project_output = f"(project={project})" if is_project_scoped else ""
 
     if not did_delete:
-        message = f"Failed to delete secret '{secret}'"
-        if project_output:
-            message = f"{message} {project_output}"
-        cli_ctx.logger.warning(f"{message}.")
-        return
+        # Check if the project one exists.
+        if projectified_key in secret_storage.keys:
+            do_delete = click.confirm(f"Delete project-scoped secret '{secret}'?")
+            if do_delete:
+                did_delete = secret_storage.delete_secret(projectified_key)
+        else:
+            message = f"Failed to delete secret '{secret}'"
+            if project_output:
+                message = f"{message} {project_output}"
+            cli_ctx.logger.warning(f"{message}.")
 
-    message = f"Secret '{secret}' "
-    if project:
-        message = f"{message}(project={project}) "
-    message = f"{message}has been unset."
+    if did_delete:
+        message = f"Secret '{secret}' "
+        if project:
+            message = f"{message}(project={project}) "
+        message = f"{message}has been unset."
 
-    cli_ctx.logger.success(message)
+        cli_ctx.logger.success(message)
