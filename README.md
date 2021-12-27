@@ -34,6 +34,8 @@ Add accounts to keyring:
 ape keyring import keyring_dev_0
 ```
 
+and then when it prompts you, input your private key.
+
 To add secrets to keyring:
 
 ```bash
