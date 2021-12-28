@@ -75,7 +75,7 @@ def delete(cli_ctx, secret, scope):
     project_output = f"(project={project})" if is_project_scoped else ""
 
     if not did_delete:
-        # Check if the project one exists.
+        # Try to delete project secret
         if projectified_key in secret_storage.keys:
             do_delete = click.confirm(f"Delete project-scoped secret '{secret}'?")
             if do_delete:

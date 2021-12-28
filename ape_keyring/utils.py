@@ -18,5 +18,4 @@ def get_address(private_key: str) -> Optional[AddressType]:
 
 
 def agree_to_sign(message: Any, message_type_name: str) -> bool:
-    answer = click.prompt(f"Sign {message_type_name}: {message}\n(Y/n)")
-    return answer.upper() in ["Y"]
+    return click.confirm(f"Sign {message_type_name}: {message}")
