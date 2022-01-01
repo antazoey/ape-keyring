@@ -1,11 +1,10 @@
 from typing import List
 
 import click
-from ape import project
 from ape.cli import ape_cli_context
 
 from ape_keyring.args import scope_option, secret_argument
-from ape_keyring.storage import secret_storage
+from ape_keyring.secrets import Scope, get_secret_manager
 
 
 @click.group()
@@ -18,17 +17,13 @@ def secrets():
 def _list(cli_ctx):
     """List secrets"""
 
-    project_key = f"<<project={project.path.stem}>>"
-    project_secrets = [k.replace(project_key, "") for k in secret_storage.keys if project_key in k]
-    global_secrets = [
-        k for k in secret_storage.keys if k not in project_secrets and "<<project=" not in k
-    ]
+    secret_manager = get_secret_manager(cli_ctx.project.path)
 
-    if not global_secrets and not project_secrets:
+    if not secret_manager.secrets_exist:
         cli_ctx.logger.warning("No secrets found.")
         return
 
-    def output_secret_list(header: str, secret_keys: List[str]):
+    def output_secret_list(header: str, secret_keys: List[str]) -> bool:
         if not secret_keys:
             return False
 
@@ -38,11 +33,11 @@ def _list(cli_ctx):
 
         return True
 
-    did_output = output_secret_list("Global secrets", global_secrets)
-    if did_output and project_secrets:
+    did_output = output_secret_list("Global secrets", secret_manager.global_secrets)
+    if did_output and secret_manager.project_secrets:
         click.echo()
 
-    output_secret_list("Project secrets", project_secrets)
+    output_secret_list("Project secrets", secret_manager.project_secrets)
 
 
 @secrets.command(name="set")
@@ -51,12 +46,9 @@ def _list(cli_ctx):
 @scope_option()
 def _set(cli_ctx, secret, scope):
     """Add or replace a secret"""
-
-    project_key = f"<<project={project.path.stem}>>"
-    is_project_scoped = scope == "project"
-    key = f"{secret}{project_key}" if is_project_scoped else secret
     value = click.prompt(f"Enter the secret value for '{secret}'", hide_input=True)
-    secret_storage.store_secret(key, value)
+    secret_manager = get_secret_manager(cli_ctx.project.path)
+    secret_manager.store_secret(secret, value, scope=scope)
     cli_ctx.logger.success(f"Secret '{secret}' has been set.")
 
 
@@ -67,20 +59,18 @@ def _set(cli_ctx, secret, scope):
 def delete(cli_ctx, secret, scope):
     """Remove a secret"""
 
-    project_key = f"<<project={project.path.stem}>>"
-    is_project_scoped = scope == "project"
-    projectified_key = f"{secret}{project_key}"
-    key = projectified_key if is_project_scoped else secret
-    did_delete = secret_storage.delete_secret(key)
-    project_output = f"(project={project})" if is_project_scoped else ""
-
+    secret_manager = get_secret_manager(cli_ctx.project.path)
+    did_delete = secret_manager.delete_secret(secret, scope=scope)
     if not did_delete:
         # Try to delete project secret
-        if projectified_key in secret_storage.keys:
+        if secret_manager.get_secret(secret, scope=Scope.PROJECT):
             do_delete = click.confirm(f"Delete project-scoped secret '{secret}'?")
             if do_delete:
-                did_delete = secret_storage.delete_secret(projectified_key)
+                did_delete = secret_manager.delete_secret(secret, scope=scope.PROJECT)
         else:
+            project_output = (
+                f"(project={secret_manager.project_name})" if scope == Scope.PROJECT else ""
+            )
             message = f"Failed to delete secret '{secret}'"
             if project_output:
                 message = f"{message} {project_output}"
@@ -88,8 +78,8 @@ def delete(cli_ctx, secret, scope):
 
     if did_delete:
         message = f"Secret '{secret}' "
-        if project:
-            message = f"{message}(project={project}) "
+        if secret_manager.project_name:
+            message = f"{message}(project={secret_manager.project_name}) "
         message = f"{message}has been unset."
 
         cli_ctx.logger.success(message)
