@@ -1,5 +1,5 @@
-from ape.api import ConfigItem
+from ape.api import PluginConfig
 
 
-class KeyringConfig(ConfigItem):
+class KeyringConfig(PluginConfig):
     set_env_vars: bool = False

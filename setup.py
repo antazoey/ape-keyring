@@ -54,14 +54,14 @@ setup(
     include_package_data=True,
     install_requires=[
         "click>=8.0.3",
-        "eth-ape>=0.1.0b2",
+        "eth-ape>=0.1.0b5",
         "eth-account>=0.5.6,<0.6.0",
         "eth-utils>=1.10.0,<1.11",
-        "keyring>=21.8.0,<22.0",
+        "keyring>=23.5.0,<24.0",
         "importlib-metadata ; python_version<'3.8'",
     ],  # NOTE: Add 3rd party libraries here
     entry_points={"ape_cli_subcommands": ["ape_keyring=ape_keyring._cli:cli"]},
-    python_requires=">=3.7,<4",
+    python_requires=">=3.7.2,<4",
     extras_require=extras_require,
     py_modules=["ape_keyring"],
     license="Apache-2.0",
@@ -80,5 +80,6 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
 )
