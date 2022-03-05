@@ -25,7 +25,7 @@ class KeyringAccountContainer(AccountContainerAPI):
     def __len__(self) -> int:
         return len([a for a in self.aliases if a])
 
-    def __iter__(self) -> Iterator[AccountAPI]:
+    def accounts(self) -> Iterator[AccountAPI]:
         for alias in self.aliases:
             if alias:
                 yield KeyringAccount(_alias=alias, container=self)  # type: ignore
