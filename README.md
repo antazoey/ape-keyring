@@ -58,12 +58,6 @@ keyring:
   set_env_vars: true
 ```
 
-## Development
-
-This project is in early development and should be considered an alpha.
-Things might not work, breaking changes are likely.
-Comments, questions, criticisms and pull requests are welcomed.
-
 ## License
 
 This project is licensed under the [Apache 2.0](LICENSE).

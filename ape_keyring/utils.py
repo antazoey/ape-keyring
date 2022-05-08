@@ -1,9 +1,9 @@
 from typing import Any, Optional
 
 import click
-from ape.convert import to_address
 from ape.logging import logger
 from ape.types import AddressType
+from ape.utils import to_address
 from eth_account import Account as EthAccount  # type: ignore
 from eth_utils import to_bytes
 
