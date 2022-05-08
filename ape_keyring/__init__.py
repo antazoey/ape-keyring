@@ -2,9 +2,9 @@ from pathlib import Path
 
 from ape import plugins
 
+from ._secrets import get_secret_manager
 from .accounts import KeyringAccount, KeyringAccountContainer
 from .config import KeyringConfig
-from .secrets import get_secret_manager
 
 
 @plugins.register(plugins.Config)

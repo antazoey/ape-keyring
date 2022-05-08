@@ -3,7 +3,6 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Union
 
-from ape.managers.config import CONFIG_FILE_NAME
 from ape.utils import extract_nested_value, load_config
 
 from ape_keyring.config import KeyringConfig
@@ -101,7 +100,7 @@ class SecretManager:
 
 
 def get_secret_manager(project_path: Path):
-    config = load_config(Path(CONFIG_FILE_NAME)) or {}
+    config = load_config(Path("ape-config.yaml")) or {}
     return SecretManager(project_path, secret_storage, config)  # type: ignore
 
 

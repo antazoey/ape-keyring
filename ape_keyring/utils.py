@@ -2,16 +2,14 @@ from typing import Any, Optional
 
 import click
 from ape.logging import logger
-from ape.types import AddressType
-from ape.utils import to_address
 from eth_account import Account as EthAccount  # type: ignore
+from eth_account.signers.local import LocalAccount
 from eth_utils import to_bytes
 
 
-def get_address(private_key: str) -> Optional[AddressType]:
+def get_eth_account(private_key: str) -> Optional[LocalAccount]:
     try:
-        account = EthAccount.from_key(to_bytes(hexstr=private_key))
-        return to_address(account.address)
+        return EthAccount.from_key(to_bytes(hexstr=private_key))
     except Exception as err:
         logger.log_error(err)
         return None

@@ -3,7 +3,7 @@ from ape import accounts
 from ape.cli import ape_cli_context, existing_alias_argument, non_existing_alias_argument
 
 from ape_keyring.accounts import KeyringAccount
-from ape_keyring.utils import get_address
+from ape_keyring.utils import get_eth_account
 
 
 @click.group("accounts")
@@ -37,11 +37,12 @@ def _import(cli_ctx, alias):
     """Add a new account"""
 
     key = click.prompt("Enter the private key", hide_input=True)
-    address = get_address(key)
-    if not address:
-        cli_ctx.abort("Key could not be imported.")
-        return
+    eth_account = get_eth_account(key)
 
+    if not eth_account:
+        cli_ctx.abort("Key could not be imported.")
+
+    address = eth_account.address
     container = accounts.containers["keyring"]
     container.create_account(alias, key)
     cli_ctx.logger.success(f"A new account '{address}' has been added with the ID '{alias}'.")

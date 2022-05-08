@@ -107,8 +107,11 @@ secret_storage = SecretStorage(SECRETS_TRACKER_KEY)
 """A storage class for storing secrets."""
 
 
-def _get_secret(key: str) -> str:
-    return keyring.get_password(SERVICE_NAME, key)
+def _get_secret(key: str) -> Optional[str]:
+    try:
+        return keyring.get_password(SERVICE_NAME, key)
+    except KeyError:
+        return None
 
 
 def _set_secret(key: str, secret: str):

@@ -1,6 +1,6 @@
 import click
 
-from ape_keyring.secrets import Scope
+from ape_keyring._secrets import Scope
 
 
 def secret_argument(callback=None):

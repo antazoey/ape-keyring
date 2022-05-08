@@ -3,8 +3,8 @@ from typing import List
 import click
 from ape.cli import ape_cli_context
 
+from ape_keyring._secrets import Scope, get_secret_manager
 from ape_keyring.args import scope_option, secret_argument
-from ape_keyring.secrets import Scope, get_secret_manager
 
 
 @click.group()
@@ -17,7 +17,7 @@ def secrets():
 def _list(cli_ctx):
     """List secrets"""
 
-    secret_manager = get_secret_manager(cli_ctx.project.path)
+    secret_manager = get_secret_manager(cli_ctx.project_manager.path)
 
     if not secret_manager.secrets_exist:
         cli_ctx.logger.warning("No secrets found.")
@@ -47,7 +47,7 @@ def _list(cli_ctx):
 def _set(cli_ctx, secret, scope):
     """Add or replace a secret"""
     value = click.prompt(f"Enter the secret value for '{secret}'", hide_input=True)
-    secret_manager = get_secret_manager(cli_ctx.project.path)
+    secret_manager = get_secret_manager(cli_ctx.project_manager.path)
     secret_manager.store_secret(secret, value, scope=scope)
     cli_ctx.logger.success(f"Secret '{secret}' has been set.")
 
@@ -59,7 +59,7 @@ def _set(cli_ctx, secret, scope):
 def delete(cli_ctx, secret, scope):
     """Remove a secret"""
 
-    secret_manager = get_secret_manager(cli_ctx.project.path)
+    secret_manager = get_secret_manager(cli_ctx.project_manager.path)
     did_delete = secret_manager.delete_secret(secret, scope=scope)
     if not did_delete:
         # Try to delete project secret
