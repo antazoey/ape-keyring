@@ -25,7 +25,9 @@ class SecretStorage:
 
     def __iter__(self):
         for key in self.keys:
-            yield key, self.get_secret(key)
+            secret = self.get_secret(key)
+            if secret:
+                yield key, secret
 
     @property
     def data_folder(self) -> Path:
@@ -134,6 +136,6 @@ def _delete_secret(key: str):
     try:
         keyring.delete_password(SERVICE_NAME, key)
         return True
-    except PasswordDeleteError as err:
+    except (PasswordDeleteError, AssertionError) as err:
         logger.debug(err)
         return False

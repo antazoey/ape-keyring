@@ -102,7 +102,8 @@ class SecretManager(ManagerAccessMixin):
 
     def _unset_env_var(self, key: str):
         key = self._extract_env_var_key(key)
-        del os.environ[key]
+        if key in os.environ:
+            del os.environ[key]
 
     def _extract_env_var_key(self, key: str):
         return key.split(self._project_key)[0]
