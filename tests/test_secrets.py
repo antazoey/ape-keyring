@@ -65,7 +65,6 @@ def set_temp_secret(key: str, value: str, scope: Scope):
         secret_manager.store_secret(key, value, scope=scope)
 
     yield
-    # Cleaned by auto_clean
 
 
 @key_value_and_scope
@@ -78,8 +77,7 @@ def test_set(cli, runner, key, value, scope):
     assert result.exit_code == 0, result.output
 
     opposite = [k for k in [GLOBAL_SECRET_KEY, PROJECT_SECRET_KEY] if k != key][0]
-    expected = key if scope == Scope.GLOBAL.value else f"{key}<<project=tests>>"
-    assert expected in secret_manager.keys
+    assert key in secret_manager.keys
     assert opposite not in secret_manager.keys
     secret_manager.delete_secret(key, scope=scope)
 
@@ -110,10 +108,6 @@ def test_config(config):
 def test_secrets_in_env(temp_secrets, key, value, scope):
     if key in secret_manager.keys:
         secret_manager.delete_secret(key, scope=scope)
-
-    if key in os.environ:
-        # Ensure does not start off in env
-        del os.environ[key]
 
     secret_manager.store_secret(key, value, scope=scope)
     assert os.environ.get(key) == value

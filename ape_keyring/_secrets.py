@@ -21,7 +21,7 @@ class SecretManager(ManagerAccessMixin):
 
     @property
     def keys(self) -> List[str]:
-        return self._storage.keys
+        return [k.split("<<")[0] for k in self._storage.keys]
 
     @property
     def project_name(self) -> str:
