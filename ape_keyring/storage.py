@@ -53,7 +53,7 @@ class SecretStorage:
             List[str]
         """
 
-        return self.plugin_data.get("keys", [])
+        return self.plugin_data.get(self._tracker_key, [])
 
     def get_secret(self, key: str) -> Optional[str]:
         """
@@ -81,15 +81,13 @@ class SecretStorage:
         """
 
         if key not in self.keys:
-            new_keys = [*self.keys, key]
-            self._store_public_data("keys", new_keys)
+            self._track([*self.keys, key])
 
         _set_secret(key, secret)
 
     def delete_secret(self, key: str):
         if key in self.keys:
-            new_keys = [k for k in self.keys if k != key]
-            self._store_public_data("keys", new_keys)
+            self._track([k for k in self.keys if k != key])
 
         return _delete_secret(key)
 
@@ -97,7 +95,8 @@ class SecretStorage:
         for key in self.keys:
             _delete_secret(key)
 
-        _delete_secret(self._tracker_key)
+    def _track(self, new_keys: List[str]):
+        self._store_public_data(self._tracker_key, new_keys)
 
     def _store_public_data(self, key: str, value: Any):
         self.data_folder.mkdir(exist_ok=True, parents=True)

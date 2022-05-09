@@ -20,10 +20,6 @@ class SecretManager(ManagerAccessMixin):
         self._storage = storage
 
     @property
-    def keys(self) -> List[str]:
-        return [k.split("<<")[0] for k in self._storage.keys]
-
-    @property
     def project_name(self) -> str:
         return self._path.stem
 
@@ -37,19 +33,17 @@ class SecretManager(ManagerAccessMixin):
 
     @property
     def secrets_exist(self) -> bool:
-        return self.project_secrets or self.global_secrets  # type: ignore
+        return self.project_keys or self.global_keys  # type: ignore
 
     @property
-    def project_secrets(self) -> List[str]:
+    def project_keys(self) -> List[str]:
         keys = self._storage.keys
         return [k.replace(self._project_key, "") for k in keys if self._project_key in k]
 
     @property
-    def global_secrets(self) -> List[str]:
+    def global_keys(self) -> List[str]:
         keys = self._storage.keys
-        return [
-            k for k in keys if k not in self.project_secrets and self._project_key_prefix not in k
-        ]
+        return [k for k in keys if k not in self.project_keys and self._project_key_prefix not in k]
 
     @property
     def config(self) -> KeyringConfig:
@@ -57,27 +51,24 @@ class SecretManager(ManagerAccessMixin):
         return KeyringConfig.parse_obj(raw_config.get("keyring", {}))
 
     @property
-    def _set_environment_variables(self) -> bool:
+    def do_set_env_vars(self) -> bool:
         stored_value = self.config.dict().get("set_env_vars") or "f"
         return str(stored_value).lower() in ["1", "true", "t"]
 
     def get_secret(self, key, scope: Union[str, Scope] = Scope.GLOBAL) -> str:
-        scope = Scope(scope)
         key = self._get_key(key, scope)
         return self._storage.get_secret(key) or ""
 
     def store_secret(self, key: str, secret: str, scope: Union[str, Scope] = Scope.GLOBAL):
-        scope = Scope(scope)
         key = self._get_key(key, scope)
         self._storage.store_secret(key, secret)
-        if self._set_environment_variables:
+        if self.do_set_env_vars:
             self._set_env_var(key, secret)
 
     def delete_secret(self, key: str, scope: Union[str, Scope] = Scope.GLOBAL) -> bool:
-        scope = Scope(scope)
         key = self._get_key(key, scope)
         did_delete = self._storage.delete_secret(key)
-        if self._set_environment_variables:
+        if self.do_set_env_vars:
             self._unset_env_var(key)
 
         return did_delete
@@ -86,14 +77,14 @@ class SecretManager(ManagerAccessMixin):
         """
         Set the environment variables if told to from the config.
         """
-        if not self._set_environment_variables:
+        if not self.do_set_env_vars:
             return
 
         for key, value in self._storage:
             self._set_env_var(key, value)
 
-    def _get_key(self, key: str, scope: Scope):
-        return f"{key}{self._project_key}" if scope == Scope.PROJECT else key
+    def _get_key(self, key: str, scope: Union[str, Scope]):
+        return f"{key}{self._project_key}" if scope in [Scope.PROJECT, Scope.PROJECT.value] else key
 
     def _set_env_var(self, key: str, value: str):
         # Strip of 'project=' and '<<>>' parts before setting as env var.

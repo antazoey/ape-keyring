@@ -1,8 +1,5 @@
 import os
-from contextlib import contextmanager
-from pathlib import Path
 
-import ape
 import pytest
 
 from ape_keyring import Scope, secret_manager
@@ -22,36 +19,30 @@ key_value_and_scope = pytest.mark.parametrize(
 )
 
 
-@pytest.fixture(scope="module", autouse=True)
+def clean():
+    if GLOBAL_SECRET_KEY in secret_manager.global_keys:
+        secret_manager.delete_secret(GLOBAL_SECRET_KEY)
+    if PROJECT_SECRET_KEY in secret_manager.project_keys:
+        secret_manager.delete_secret(PROJECT_SECRET_KEY)
+
+
+@pytest.fixture(autouse=True)
 def auto_clean():
+    clean()
     yield
-
-    for key in [GLOBAL_SECRET_KEY, PROJECT_SECRET_KEY]:
-        if key in secret_manager.keys:
-            secret_manager.delete_secret(key)
-
-
-@pytest.fixture(scope="session")
-def config():
-    return ape.config
-
-
-@pytest.fixture(scope="session", autouse=True)
-def from_tests_directory(config):
-    with config.using_project(Path(__file__).parent):
-        yield
+    clean()
 
 
 @pytest.fixture
 def temp_global_secret():
-    with set_temp_secret(GLOBAL_SECRET_KEY, GLOBAL_SECRET_VALUE, Scope.GLOBAL):
-        yield
+    if GLOBAL_SECRET_KEY not in secret_manager.global_keys:
+        secret_manager.store_secret(GLOBAL_SECRET_KEY, GLOBAL_SECRET_VALUE, scope=Scope.GLOBAL)
 
 
 @pytest.fixture
 def temp_project_secret():
-    with set_temp_secret(PROJECT_SECRET_KEY, PROJECT_SECRET_VALUE, Scope.PROJECT):
-        yield
+    if PROJECT_SECRET_KEY not in secret_manager.project_keys:
+        secret_manager.store_secret(PROJECT_SECRET_KEY, PROJECT_SECRET_VALUE, scope=Scope.PROJECT)
 
 
 @pytest.fixture
@@ -59,27 +50,17 @@ def temp_secrets(temp_global_secret, temp_project_secret):
     yield
 
 
-@contextmanager
-def set_temp_secret(key: str, value: str, scope: Scope):
-    if key not in secret_manager.keys:
-        secret_manager.store_secret(key, value, scope=scope)
-
-    yield
-
-
 @key_value_and_scope
 def test_set(cli, runner, key, value, scope):
-    if key in secret_manager.keys:
-        # Corrupted from previous test.
-        secret_manager.delete_secret(key, scope=scope)
-
     result = runner.invoke(cli, ["keyring", "secrets", "set", key, "--scope", scope], input=value)
     assert result.exit_code == 0, result.output
 
+    keys = (
+        secret_manager.project_keys if scope == Scope.PROJECT.value else secret_manager.global_keys
+    )
     opposite = [k for k in [GLOBAL_SECRET_KEY, PROJECT_SECRET_KEY] if k != key][0]
-    assert key in secret_manager.keys
-    assert opposite not in secret_manager.keys
-    secret_manager.delete_secret(key, scope=scope)
+    assert key in keys
+    assert opposite not in keys
 
 
 @pytest.mark.parametrize("key", (GLOBAL_SECRET_KEY, PROJECT_SECRET_KEY))
@@ -106,9 +87,6 @@ def test_config(config):
 
 @key_value_and_scope
 def test_secrets_in_env(temp_secrets, key, value, scope):
-    if key in secret_manager.keys:
-        secret_manager.delete_secret(key, scope=scope)
-
     secret_manager.store_secret(key, value, scope=scope)
     assert os.environ.get(key) == value
     secret_manager.delete_secret(key, scope=scope)
