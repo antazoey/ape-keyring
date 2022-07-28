@@ -1,3 +1,4 @@
+import tempfile
 from pathlib import Path
 
 import ape
@@ -6,7 +7,18 @@ import pytest
 from ape._cli import cli as root_cli
 from click.testing import CliRunner
 
+from ape_keyring._secrets import get_secret_manager
+from ape_keyring.storage import SecretStorage
 from ape_keyring.testing import MockBackend
+
+TEMP_DATA_FOLDER = Path(tempfile.mkdtemp()).resolve()
+PROJECT_DIRECTORY = Path(__file__).parent
+
+
+@pytest.fixture(scope="session", autouse=True)
+def secret_manager():
+    storage = SecretStorage("secrets", data_folder=TEMP_DATA_FOLDER)
+    return get_secret_manager(PROJECT_DIRECTORY, storage)
 
 
 @pytest.fixture(scope="session")
@@ -16,7 +28,7 @@ def config():
 
 @pytest.fixture(scope="session", autouse=True)
 def from_tests_directory(config):
-    with config.using_project(Path(__file__).parent):
+    with config.using_project(PROJECT_DIRECTORY):
         yield
 
 

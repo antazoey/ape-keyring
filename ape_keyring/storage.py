@@ -12,16 +12,20 @@ SECRETS_TRACKER_KEY = "ape-keyring-secrets"
 
 
 class SecretStorage:
-    def __init__(self, tracker_key: str):
+    def __init__(self, tracker_key: str, data_folder: Optional[Path] = None):
         """
         Initialize a new base-storage class.
 
         Args:
             tracker_key (str): The key-name for storing a comma-separated list
               of items tracked.
+            data_folder (Optional[Path]): The path to the plugin's data.
+              If given ``None``, defaults to  ``Path.home() / ".ape" / "keyring"``.
+              Defaults to ``None``.
         """
 
         self._tracker_key = tracker_key
+        self._data_folder = data_folder or Path.home() / ".ape" / "keyring"
 
     def __iter__(self):
         for key in self.keys:
@@ -30,12 +34,8 @@ class SecretStorage:
                 yield key, secret
 
     @property
-    def data_folder(self) -> Path:
-        return Path.home() / ".ape" / "keyring"
-
-    @property
     def data_file_path(self) -> Path:
-        return self.data_folder / "data.json"
+        return self._data_folder / "data.json"
 
     @property
     def plugin_data(self) -> Dict:
@@ -99,7 +99,7 @@ class SecretStorage:
         self._store_public_data(self._tracker_key, new_keys)
 
     def _store_public_data(self, key: str, value: Any):
-        self.data_folder.mkdir(exist_ok=True, parents=True)
+        self._data_folder.mkdir(exist_ok=True, parents=True)
         data = {**dict(self.plugin_data), key: value}
         if self.data_file_path.exists():
             self.data_file_path.unlink()

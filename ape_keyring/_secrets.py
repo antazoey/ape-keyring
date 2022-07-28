@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 from ape.utils import ManagerAccessMixin, load_config
 
@@ -100,8 +100,8 @@ class SecretManager(ManagerAccessMixin):
         return key.split(self._project_key)[0]
 
 
-def get_secret_manager(project_path: Path):
-    return SecretManager(project_path, secret_storage)  # type: ignore
+def get_secret_manager(project_path: Path, storage: Optional[SecretStorage] = None):
+    return SecretManager(project_path, storage or secret_storage)  # type: ignore
 
 
 __all__ = ["get_secret_manager", "Scope", "SecretManager"]
