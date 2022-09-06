@@ -21,7 +21,9 @@ class EphemeralBackend(KeyringBackend):
 
     def get_password(self, servicename, username):
         _require_ape(servicename, "Requesting non-ape secret.")
-        return self._storage[username]
+
+        if username in self._storage:
+            return self._storage[username]
 
     def delete_password(self, servicename, username):
         _require_ape(servicename, "Deleting non-ape secret.")

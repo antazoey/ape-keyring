@@ -19,7 +19,7 @@ class KeyringAccountContainer(AccountContainerAPI):
 
     @property
     def aliases(self) -> Iterator[str]:
-        yield from [a for a in account_storage.keys if a]
+        yield from [a for a in self.storage.keys if a]
 
     @property
     def accounts(self) -> Iterator[AccountAPI]:
@@ -27,7 +27,9 @@ class KeyringAccountContainer(AccountContainerAPI):
             yield self.load(alias)
 
     def load(self, alias: str) -> "KeyringAccount":
-        return KeyringAccount(storage_key=alias, container=self)  # type: ignore
+        return KeyringAccount(
+            storage=self.storage, storage_key=alias, container=self
+        )  # type: ignore
 
     def __len__(self) -> int:
         return len([a for a in self.aliases if a])
@@ -50,6 +52,7 @@ class KeyringAccountContainer(AccountContainerAPI):
 
 
 class KeyringAccount(AccountAPI):
+    storage: SecretStorage
     storage_key: str
     cached_address: Optional[AddressType] = None
     __autosign: bool = False
@@ -76,7 +79,7 @@ class KeyringAccount(AccountAPI):
 
     @property
     def __key(self) -> str:
-        key = account_storage.get_secret(self.storage_key)
+        key = self.storage.get_secret(self.storage_key)
         if not key:
             raise MissingSecretError(self.storage_key)
 

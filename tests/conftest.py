@@ -16,9 +16,33 @@ PROJECT_DIRECTORY = Path(__file__).parent
 
 
 @pytest.fixture(scope="session", autouse=True)
-def secret_manager():
-    storage = SecretStorage("secrets", data_folder=TEMP_DATA_FOLDER)
-    return get_secret_manager(PROJECT_DIRECTORY, storage)
+def from_tests_directory(config):
+    with config.using_project(PROJECT_DIRECTORY):
+        yield
+
+
+@pytest.fixture(scope="session", autouse=True)
+def backend(accounts):
+    backend = EphemeralBackend()
+    keyring.set_keyring(backend)
+    return backend
+
+
+@pytest.fixture(scope="session", autouse=True)
+def storage():
+    return SecretStorage("secrets", data_folder=TEMP_DATA_FOLDER)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def secret_manager(storage):
+    return get_secret_manager(PROJECT_DIRECTORY, storage=storage)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def container(accounts, storage):
+    container = accounts.containers["keyring"]
+    container.storage = storage
+    return container
 
 
 @pytest.fixture(scope="session")
@@ -29,17 +53,6 @@ def accounts():
 @pytest.fixture(scope="session")
 def config():
     return ape.config
-
-
-@pytest.fixture(scope="session", autouse=True)
-def from_tests_directory(config):
-    with config.using_project(PROJECT_DIRECTORY):
-        yield
-
-
-@pytest.fixture(autouse=True)
-def backend():
-    keyring.set_keyring(EphemeralBackend())
 
 
 @pytest.fixture
@@ -60,11 +73,6 @@ def existing_alias():
 @pytest.fixture(scope="session")
 def non_existing_alias():
     return "non_existing-test-alias"
-
-
-@pytest.fixture(scope="session")
-def container(accounts):
-    return accounts.containers["keyring"]
 
 
 @pytest.fixture

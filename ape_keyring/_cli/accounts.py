@@ -2,7 +2,6 @@ import click
 from ape import accounts
 from ape.cli import ape_cli_context, existing_alias_argument, non_existing_alias_argument
 
-from ape_keyring.accounts import KeyringAccount
 from ape_keyring.utils import get_eth_account
 
 
@@ -16,7 +15,7 @@ def account_cli():
 def _list(cli_ctx):
     """List accounts"""
 
-    keyring_accounts = [a for a in accounts if isinstance(a, KeyringAccount)]
+    keyring_accounts = list(accounts.containers["keyring"].accounts)
 
     if not keyring_accounts:
         cli_ctx.logger.warning("No accounts found.")
