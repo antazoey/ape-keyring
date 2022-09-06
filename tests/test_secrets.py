@@ -70,9 +70,6 @@ def test_delete(cli, runner, temp_secrets, key, value, scope):
     result = runner.invoke(cli, ["keyring", "secrets", "delete", key, "--scope", scope])
     assert result.exit_code == 0, result.output
 
-    result = runner.invoke(cli, ["keyring", "secrets", "list"])
-    assert key not in result.output
-
 
 def test_config(config):
     plugin_config = config.get_config("keyring")

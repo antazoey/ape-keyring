@@ -1,10 +1,10 @@
-# ape-keyring
+# Quickstart
 
 Store secrets and manage accounts for `ape` using [keyring](https://pypi.org/project/keyring/).
 
 ## Dependencies
 
-* [python3](https://www.python.org/downloads) version 3.7.2 or greater, python3-dev
+* [python3](https://www.python.org/downloads) version 3.8 or greater, python3-dev
 
 ## Installation
 
@@ -57,7 +57,3 @@ use the `ape-config.yaml` option `set_env_vars`:
 keyring:
   set_env_vars: true
 ```
-
-## License
-
-This project is licensed under the [Apache 2.0](LICENSE).

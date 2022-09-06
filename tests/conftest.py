@@ -22,6 +22,11 @@ def secret_manager():
 
 
 @pytest.fixture(scope="session")
+def accounts():
+    return ape.accounts
+
+
+@pytest.fixture(scope="session")
 def config():
     return ape.config
 
@@ -42,11 +47,37 @@ def runner():
     return CliRunner()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def cli():
     return root_cli
 
 
-@pytest.fixture
-def test_account():
-    return ape.accounts.test_accounts[0]
+@pytest.fixture(scope="session")
+def existing_alias():
+    return "existing-test-alias"
+
+
+@pytest.fixture(scope="session")
+def non_existing_alias():
+    return "non_existing-test-alias"
+
+
+@pytest.fixture(scope="session")
+def container(accounts):
+    return accounts.containers["keyring"]
+
+
+@pytest.fixture(scope="session")
+def test_account(accounts):
+    return accounts.test_accounts[0]
+
+
+@pytest.fixture(scope="session")
+def keyring_account(container, test_account, existing_alias):
+    if existing_alias not in container.aliases:
+        container.create_account(existing_alias, test_account.private_key)
+
+    yield container.load(existing_alias)
+
+    if existing_alias in container.aliases:
+        container.delete_account(existing_alias)
