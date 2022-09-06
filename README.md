@@ -1,11 +1,11 @@
 # Quickstart
 
-Avoid hard-coding private-keys and other secrets in your projects using `ape-keyring`
-`ape-keyring` is built on top of the [keyring](https://pypi.org/project/keyring/) Python package and is an account plugin and secret manager.
-When using `ape-keyring`, secrets by default use your OS's secure storage can be accessed programmatically.
-When accessing the secret, the OS prompts for authorization before the secret is returned.
+Avoid hard-coding secrets in your projects using `ape-keyring`
+`ape-keyring` is built on top of [keyring](https://pypi.org/project/keyring/) and is an account plugin and secret manager.
+By default, `keyring` uses your OS's secure storage and prompts for authorization upon request.
+Thus, `keyring` is useful for securely managing local developer environments.
 
-This guide will demonstrate how to use `ape-keyring` both as an account plugin and a secret manager.
+This guide demonstrates how to use `ape-keyring` as an account plugin and secret manager.
 
 ## Dependencies
 
