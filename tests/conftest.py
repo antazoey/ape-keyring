@@ -67,15 +67,25 @@ def container(accounts):
     return accounts.containers["keyring"]
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 def test_account(accounts):
     return accounts.test_accounts[0]
 
 
-@pytest.fixture(scope="session")
-def keyring_account(container, test_account, existing_alias):
+@pytest.fixture
+def address(test_account):
+    return test_account.address
+
+
+@pytest.fixture
+def private_key(test_account):
+    return test_account.private_key
+
+
+@pytest.fixture
+def keyring_account(container, private_key, existing_alias):
     if existing_alias not in container.aliases:
-        container.create_account(existing_alias, test_account.private_key)
+        container.create_account(existing_alias, private_key)
 
     yield container.load(existing_alias)
 

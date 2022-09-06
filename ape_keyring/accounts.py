@@ -2,6 +2,7 @@ from typing import Iterator, Optional
 
 from ape.api import AccountAPI, AccountContainerAPI, TransactionAPI
 from ape.exceptions import AccountsError
+from ape.logging import logger
 from ape.types import AddressType, MessageSignature, TransactionSignature
 from ape.utils import cached_property
 from eth_account import Account as EthAccount  # type: ignore
@@ -9,16 +10,16 @@ from eth_account.messages import SignableMessage
 from eth_utils import to_bytes
 
 from ape_keyring.exceptions import EmptyAliasError, MissingSecretError
-from ape_keyring.storage import account_storage
+from ape_keyring.storage import SecretStorage, account_storage
 from ape_keyring.utils import agree_to_sign, get_eth_account
 
 
 class KeyringAccountContainer(AccountContainerAPI):
+    storage: SecretStorage = account_storage
+
     @property
     def aliases(self) -> Iterator[str]:
-        for alias in account_storage.keys:
-            if alias:
-                yield alias
+        yield from [a for a in account_storage.keys if a]
 
     @property
     def accounts(self) -> Iterator[AccountAPI]:
@@ -31,32 +32,30 @@ class KeyringAccountContainer(AccountContainerAPI):
     def __len__(self) -> int:
         return len([a for a in self.aliases if a])
 
-    def __setitem__(self, address: AddressType, account: AccountAPI):
-        pass
-
-    def __delitem__(self, address: AddressType):
-        pass
-
     def create_account(self, alias: str, secret: str):
         if not alias:
             raise EmptyAliasError()
 
-        account_storage.store_secret(alias, secret)
+        self.storage.store_secret(alias, secret)
+        assert self.storage.get_secret(alias)
 
     def delete_account(self, alias: str):
         if not alias:
             raise EmptyAliasError()
 
-        account_storage.delete_secret(alias)
+        self.storage.delete_secret(alias)
 
     def delete_all(self):
-        account_storage.delete_all()
+        self.storage.delete_all()
 
 
 class KeyringAccount(AccountAPI):
     storage_key: str
     cached_address: Optional[AddressType] = None
-    skip_prompt: bool = False
+    __autosign: bool = False
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} address={self.address} alias={self.alias}>"
 
     @property
     def alias(self) -> str:
@@ -84,7 +83,7 @@ class KeyringAccount(AccountAPI):
         return key
 
     def sign_message(self, msg: SignableMessage) -> Optional[MessageSignature]:
-        if not self.skip_prompt and not agree_to_sign(msg, "message"):
+        if not self.__autosign and not agree_to_sign(msg, "message"):
             return None
 
         signed_msg = EthAccount.sign_message(msg, self.__key)
@@ -93,10 +92,20 @@ class KeyringAccount(AccountAPI):
         )  # type: ignore
 
     def sign_transaction(self, txn: TransactionAPI) -> Optional[TransactionSignature]:
-        if not self.skip_prompt and not agree_to_sign(txn, "transaction"):
+        if not self.__autosign and not agree_to_sign(txn, "transaction"):
             return None
 
         signed_txn = EthAccount.sign_transaction(txn.dict(), self.__key)
         return TransactionSignature(
             v=signed_txn.v, r=to_bytes(signed_txn.r), s=to_bytes(signed_txn.s)
         )  # type: ignore
+
+    def set_autosign(self, enabled: bool):
+        """
+        Allow this account to automatically sign messages and transactions.
+
+        Args:
+            enabled (bool): ``True`` to enable, ``False`` to disable.
+        """
+        logger.warning("Danger! This account will now sign any transaction it's given.")
+        self.__autosign = enabled

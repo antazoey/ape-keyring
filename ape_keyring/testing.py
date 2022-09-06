@@ -5,11 +5,15 @@ from ape_keyring.storage import ACCOUNTS_TRACKER_KEY, SECRETS_TRACKER_KEY, SERVI
 
 def _require_ape(service_name: str, msg: str):
     if service_name != SERVICE_NAME:
-        raise AssertionError(msg)
+        raise ValueError(msg)
 
 
 class MockBackend(KeyringBackend):
     _storage = {ACCOUNTS_TRACKER_KEY: "", SECRETS_TRACKER_KEY: ""}
+
+    @property
+    def priority(cls):
+        return 1
 
     def set_password(self, servicename, username, password):
         _require_ape(servicename, "Saving non-ape secret.")
