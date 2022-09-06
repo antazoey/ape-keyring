@@ -34,7 +34,7 @@ def _list(cli_ctx):
 @non_existing_alias_argument()
 @ape_cli_context()
 def _import(cli_ctx, alias):
-    """Add a new account"""
+    """Add a private key to keyring"""
 
     key = click.prompt("Enter the private key", hide_input=True)
     eth_account = get_eth_account(key)
@@ -52,7 +52,7 @@ def _import(cli_ctx, alias):
 @ape_cli_context()
 @existing_alias_argument()
 def delete(cli_ctx, alias):
-    """Delete an account"""
+    """Remove a private key from keyring"""
 
     container = accounts.containers["keyring"]
     container.delete_account(alias)
@@ -62,7 +62,7 @@ def delete(cli_ctx, alias):
 @account_cli.command()
 @ape_cli_context()
 def delete_all(cli_ctx):
-    """Delete all keyring accounts"""
+    """Delete all private keys from keyring"""
 
     container = accounts.containers["keyring"]
     container.delete_all()

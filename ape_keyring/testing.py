@@ -3,12 +3,12 @@ from keyring.backend import KeyringBackend
 from ape_keyring.storage import ACCOUNTS_TRACKER_KEY, SECRETS_TRACKER_KEY, SERVICE_NAME
 
 
-def _require_ape(service_name: str, msg: str):
-    if service_name != SERVICE_NAME:
-        raise ValueError(msg)
+class EphemeralBackend(KeyringBackend):
+    """
+    A keyring backend that requires Ape and is in-memory only,
+    for testing purposes.
+    """
 
-
-class MockBackend(KeyringBackend):
     _storage = {ACCOUNTS_TRACKER_KEY: "", SECRETS_TRACKER_KEY: ""}
 
     @property
@@ -30,3 +30,8 @@ class MockBackend(KeyringBackend):
             raise AssertionError(f"Deleting non-stored username '{username}'.")
 
         del self._storage[username]
+
+
+def _require_ape(service_name: str, msg: str):
+    if service_name != SERVICE_NAME:
+        raise ValueError(msg)

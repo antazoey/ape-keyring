@@ -9,7 +9,7 @@ from click.testing import CliRunner
 
 from ape_keyring._secrets import get_secret_manager
 from ape_keyring.storage import SecretStorage
-from ape_keyring.testing import MockBackend
+from ape_keyring.testing import EphemeralBackend
 
 TEMP_DATA_FOLDER = Path(tempfile.mkdtemp()).resolve()
 PROJECT_DIRECTORY = Path(__file__).parent
@@ -38,8 +38,8 @@ def from_tests_directory(config):
 
 
 @pytest.fixture(autouse=True)
-def mock_keyring_backend():
-    keyring.set_keyring(MockBackend())
+def backend():
+    keyring.set_keyring(EphemeralBackend())
 
 
 @pytest.fixture

@@ -18,7 +18,6 @@ def _list(cli_ctx):
     """List secrets"""
 
     secret_manager = get_secret_manager(cli_ctx.project_manager.path)
-
     if not secret_manager.secrets_exist:
         cli_ctx.logger.warning("No secrets found.")
         return
@@ -44,9 +43,10 @@ def _list(cli_ctx):
 @secret_argument()
 @ape_cli_context()
 @scope_option()
-def _set(cli_ctx, secret, scope):
+@click.option("--value", help="(insecure) the secret value, prompts if not given")
+def _set(cli_ctx, secret, scope, value):
     """Add or replace a secret"""
-    value = click.prompt(f"Enter the secret value for '{secret}'", hide_input=True)
+    value = value or click.prompt(f"Enter the secret value for '{secret}'", hide_input=True)
     secret_manager = get_secret_manager(cli_ctx.project_manager.path)
     secret_manager.store_secret(secret, value, scope=scope)
     cli_ctx.logger.success(f"Secret '{secret}' has been set.")
@@ -67,6 +67,7 @@ def delete(cli_ctx, secret, scope):
             do_delete = click.confirm(f"Delete project-scoped secret '{secret}'?")
             if do_delete:
                 did_delete = secret_manager.delete_secret(secret, scope=scope.PROJECT)
+
         else:
             project_output = (
                 f"(project={secret_manager.project_name})" if scope == Scope.PROJECT else ""
@@ -74,12 +75,13 @@ def delete(cli_ctx, secret, scope):
             message = f"Failed to delete secret '{secret}'"
             if project_output:
                 message = f"{message} {project_output}"
+
             cli_ctx.logger.warning(f"{message}.")
 
     if did_delete:
         message = f"Secret '{secret}' "
         if secret_manager.project_name:
             message = f"{message}(project={secret_manager.project_name}) "
-        message = f"{message}has been unset."
 
+        message = f"{message}has been unset."
         cli_ctx.logger.success(message)
