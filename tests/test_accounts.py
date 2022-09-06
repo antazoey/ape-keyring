@@ -1,56 +1,55 @@
 import pytest
-from ape import accounts
 from eth_account import Account
 from eth_account.messages import encode_defunct
 
-TEST_ALIAS = "test-alias"
-
 
 @pytest.fixture
-def container():
-    return accounts.containers["keyring"]
+def eip191_message():
+    return encode_defunct(text="Hello Test")
 
 
-@pytest.fixture
-def temp_keyfile_account(container, test_account):
-    if TEST_ALIAS not in container.aliases:
-        container.create_account(TEST_ALIAS, test_account.private_key)
-
-    yield container.load(TEST_ALIAS)
-
-    if TEST_ALIAS in container.aliases:
-        container.delete_account(TEST_ALIAS)
-
-
-def test_import(cli, runner, test_account, container):
-    private_key = test_account.private_key
-    result = runner.invoke(cli, ["keyring", "accounts", "import", TEST_ALIAS], input=private_key)
+def test_import(cli, runner, test_account, container, non_existing_alias):
+    result = runner.invoke(
+        cli, ["keyring", "accounts", "import", non_existing_alias], input=test_account.private_key
+    )
     assert not result.exit_code, result.output
     assert "SUCCESS" in result.output
     assert test_account.address in result.output
-    container.delete_account(TEST_ALIAS)
+    container.delete_account(non_existing_alias)
 
 
-def test_list(cli, runner, temp_keyfile_account):
+def test_list(cli, runner, keyring_account, existing_alias):
     result = runner.invoke(cli, ["keyring", "accounts", "list"])
-    assert temp_keyfile_account.address in result.output
-    assert TEST_ALIAS in result.output
+    assert result.exit_code == 0, result.output
+    assert existing_alias in result.output
 
 
-def test_sign_message(temp_keyfile_account):
-    eip191message = encode_defunct(text="Hello Test")
-    account = accounts.load(TEST_ALIAS)
-    account.skip_prompt = True
-    signature = account.sign_message(eip191message)
+def test_sign_message(keyring_account, runner, eip191_message):
+    with runner.isolation("y\n"):
+        signature = keyring_account.sign_message(eip191_message)
+
     signature_bytes = signature.encode_rsv()
-    signer = Account.recover_message(eip191message, signature=signature_bytes)
-    assert signer == temp_keyfile_account.address
+    signer = Account.recover_message(eip191_message, signature=signature_bytes)
+    assert signer == keyring_account.address
 
 
-def test_delete(cli, runner, temp_keyfile_account):
-    result = runner.invoke(cli, ["keyring", "accounts", "delete", TEST_ALIAS])
-    assert f"SUCCESS: Account '{TEST_ALIAS}' removed from keying" in result.output
+def test_set_autosign(keyring_account, eip191_message, runner):
+    keyring_account.set_autosign(True)
+
+    # The password is not required
+    keyring_account.sign_message(eip191_message)
+
+    keyring_account.set_autosign(False)
+
+    # The password is now required
+    with runner.isolation("y\n"):
+        keyring_account.sign_message(eip191_message)
+
+
+def test_delete(cli, runner, keyring_account):
+    result = runner.invoke(cli, ["keyring", "accounts", "delete", keyring_account.alias])
+    assert f"SUCCESS: Account '{keyring_account.alias}' removed from keying" in result.output
 
     # Verify account is NOT listed in 'list' command
     result = runner.invoke(cli, ["keyring", "accounts", "list"])
-    assert TEST_ALIAS not in result.output
+    assert keyring_account.alias not in result.output
