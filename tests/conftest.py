@@ -11,6 +11,7 @@ from ape_keyring._secrets import get_secret_manager
 from ape_keyring.storage import SecretStorage
 from ape_keyring.testing import EphemeralBackend
 
+ape.config.DATA_FOLDER = Path(tempfile.mkdtemp()).resolve()
 TEMP_DATA_FOLDER = Path(tempfile.mkdtemp()).resolve()
 PROJECT_DIRECTORY = Path(__file__).parent
 
@@ -30,11 +31,11 @@ def backend(accounts):
 
 @pytest.fixture(scope="session", autouse=True)
 def storage():
-    return SecretStorage("secrets", data_folder=TEMP_DATA_FOLDER)
+    return SecretStorage("secrets")
 
 
 @pytest.fixture(scope="session", autouse=True)
-def secret_manager(storage):
+def secret_manager(container, storage):
     return get_secret_manager(PROJECT_DIRECTORY, storage=storage)
 
 

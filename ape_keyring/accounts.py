@@ -39,7 +39,8 @@ class KeyringAccountContainer(AccountContainerAPI):
             raise EmptyAliasError()
 
         self.storage.store_secret(alias, secret)
-        assert self.storage.get_secret(alias)
+        if not self.storage.get_secret(alias):
+            raise AccountsError(f"Failed to create account '{alias}'")
 
     def delete_account(self, alias: str):
         if not alias:
