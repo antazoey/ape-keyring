@@ -53,11 +53,11 @@ setup(
     url="https://github.com/unparalleled-js/ape-keyring",
     include_package_data=True,
     install_requires=[
-        "click>=8.1.3",
-        "eth-ape>=0.4.5,<0.5",
+        "click",  # Use same version as eth-ape
+        "eth-ape>=0.5.1,<0.6",
         "eth-account",  # Use same version as eth-ape
-        "eth-utils>=1.10.0",
-        "keyring>=23.9.1,<24.0",
+        "eth-utils",  # Use same version as eth-ape
+        "keyring>=23.9.1,<24",
     ],
     entry_points={"ape_cli_subcommands": ["ape_keyring=ape_keyring._cli:cli"]},
     python_requires=">=3.8,<4",

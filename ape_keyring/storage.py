@@ -32,7 +32,16 @@ class SecretStorage(ManagerAccessMixin):
 
     @property
     def data_folder(self) -> Path:
-        return self.account_manager.containers["keyring"].data_folder
+        try:
+            return self.account_manager.containers["keyring"].data_folder
+        except ValueError as err:
+            # TODO: Come up with better fix
+            if str(err) == "Value not set. Please inject this property before calling.":
+                # Fixes race condition when using set_env_vars: True
+                # and plugins are not loaded properly yet.
+                return Path.home() / ".ape" / "keyring"
+
+            raise  # Original error
 
     @property
     def data_file_path(self) -> Path:

@@ -1,6 +1,6 @@
 # Quickstart
 
-Avoid hard-coding secrets in your projects using `ape-keyring`
+Avoid hard-coding secrets in your projects using `ape-keyring`.
 `ape-keyring` is built on top of [keyring](https://pypi.org/project/keyring/) and is an account plugin and secret manager.
 By default, `keyring` uses your OS's secure storage and prompts for authorization upon request.
 Thus, `keyring` is useful for securely managing local developer environments.
