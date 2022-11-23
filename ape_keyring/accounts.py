@@ -5,7 +5,7 @@ from ape.exceptions import AccountsError
 from ape.logging import logger
 from ape.types import AddressType, MessageSignature, TransactionSignature
 from ape.utils import cached_property
-from eth_account import Account as EthAccount  # type: ignore
+from eth_account import Account as EthAccount
 from eth_account.messages import SignableMessage
 from eth_utils import to_bytes
 
@@ -27,9 +27,7 @@ class KeyringAccountContainer(AccountContainerAPI):
             yield self.load(alias)
 
     def load(self, alias: str) -> "KeyringAccount":
-        return KeyringAccount(
-            storage=self.storage, storage_key=alias, container=self
-        )  # type: ignore
+        return KeyringAccount(storage=self.storage, storage_key=alias, container=self)
 
     def __len__(self) -> int:
         return len([a for a in self.aliases if a])

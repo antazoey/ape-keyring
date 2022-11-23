@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from setuptools import find_packages, setup  # type: ignore
+from setuptools import find_packages, setup
 
 extras_require = {
     "test": [  # `test` GitHub Action jobs uses this
@@ -10,9 +10,10 @@ extras_require = {
         "hypothesis>=6.2.0,<7.0",  # Strategy-based fuzzer
     ],
     "lint": [
-        "black>=22.6.0",  # auto-formatter and linter
-        "mypy>=0.971",  # Static type analyzer
-        "flake8>=4.0.1",  # Style linter
+        "black>=22.10.0",  # auto-formatter and linter
+        "mypy>=0.991",  # Static type analyzer
+        "types-setuptools",  # Needed for mypy typeshed
+        "flake8>=5.0.4",  # Style linter
         "isort>=5.10.1",  # Import sorting linter
     ],
     "release": [  # `release` GitHub Action job uses this
@@ -29,7 +30,6 @@ extras_require = {
     ],
 }
 
-# NOTE: `pip install -e .[dev]` to install package
 extras_require["dev"] = (
     extras_require["test"]
     + extras_require["lint"]
@@ -54,7 +54,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "click",  # Use same version as eth-ape
-        "eth-ape>=0.5.1,<0.6",
+        "eth-ape>=0.5.6,<0.6",
         "eth-account",  # Use same version as eth-ape
         "eth-utils",  # Use same version as eth-ape
         "keyring>=23.9.1,<24",
