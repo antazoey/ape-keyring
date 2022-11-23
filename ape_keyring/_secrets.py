@@ -101,7 +101,7 @@ class SecretManager(ManagerAccessMixin):
 
 
 def get_secret_manager(project_path: Path, storage: Optional[SecretStorage] = None):
-    return SecretManager(project_path, storage or secret_storage)  # type: ignore
+    return SecretManager(project_path, storage or secret_storage)
 
 
 __all__ = ["get_secret_manager", "Scope", "SecretManager"]

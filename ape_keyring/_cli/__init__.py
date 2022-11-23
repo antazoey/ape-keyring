@@ -10,5 +10,5 @@ def cli():
     pass
 
 
-cli.add_command(account_cli)  # type: ignore
-cli.add_command(secrets)  # type: ignore
+cli.add_command(account_cli)
+cli.add_command(secrets)

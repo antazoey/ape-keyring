@@ -2,7 +2,7 @@ from typing import Any, Optional
 
 import click
 from ape.logging import logger
-from eth_account import Account as EthAccount  # type: ignore
+from eth_account import Account as EthAccount
 from eth_account.signers.local import LocalAccount
 from eth_utils import to_bytes
 
