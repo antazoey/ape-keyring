@@ -89,18 +89,18 @@ class KeyringAccount(AccountAPI):
             return None
 
         signed_msg = EthAccount.sign_message(msg, self.__key)
-        return MessageSignature(
-            v=signed_msg.v, r=to_bytes(signed_msg.r), s=to_bytes(signed_msg.s)
-        )  # type: ignore
+        return MessageSignature(v=signed_msg.v, r=to_bytes(signed_msg.r), s=to_bytes(signed_msg.s))
 
-    def sign_transaction(self, txn: TransactionAPI) -> Optional[TransactionSignature]:
+    def sign_transaction(
+        self, txn: TransactionAPI, **signer_options
+    ) -> Optional[TransactionSignature]:
         if not self.__autosign and not agree_to_sign(txn, "transaction"):
             return None
 
         signed_txn = EthAccount.sign_transaction(txn.dict(), self.__key)
         return TransactionSignature(
             v=signed_txn.v, r=to_bytes(signed_txn.r), s=to_bytes(signed_txn.s)
-        )  # type: ignore
+        )
 
     def set_autosign(self, enabled: bool):
         """
