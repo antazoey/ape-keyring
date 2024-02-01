@@ -10,14 +10,15 @@ extras_require = {
         "hypothesis>=6.2.0,<7.0",  # Strategy-based fuzzer
     ],
     "lint": [
-        "black>=22.10.0",  # auto-formatter and linter
-        "mypy>=0.991,<1",  # Static type analyzer
+        "black>=24.1.1",  # auto-formatter and linter
+        "mypy>=1.8.0,<2",  # Static type analyzer
         "types-setuptools",  # Needed for mypy typeshed
-        "flake8>=5.0.4",  # Style linter
+        "flake8>=7.0.0",  # Style linter
         "isort>=5.10.1",  # Import sorting linter
-        "mdformat>=0.7.16",  # Auto-formatter for markdown
+        "mdformat>=0.7.17",  # Auto-formatter for markdown
         "mdformat-gfm>=0.3.5",  # Needed for formatting GitHub-flavored markdown
         "mdformat-frontmatter>=0.4.1",  # Needed for frontmatters-style headers in issue templates
+        "mdformat-pyproject>=0.0.1",  # Allows configuring in pyproject.toml
     ],
     "release": [  # `release` GitHub Action job uses this
         "setuptools",  # Installation tool
@@ -51,16 +52,17 @@ setup(
     description="""ape-keyring: Store secrets for ape using Keyring.""",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Juliya Smith",
-    author_email="juliya@juliyasmith.com",
-    url="https://github.com/unparalleled-js/ape-keyring",
+    author="antazoey",
+    author_email="antyzoa@gmail.com",
+    url="https://github.com/antazoey/ape-keyring",
     include_package_data=True,
     install_requires=[
         "click",  # Use same version as eth-ape
-        "eth-ape>=0.6.5,<0.7",
+        "eth-ape>=0.7.7,<0.8",
         "eth-account",  # Use same version as eth-ape
         "eth-utils",  # Use same version as eth-ape
-        "keyring>=23.9.1,<24",
+        "eip712",  # Use same version as eth-ape
+        "keyring>=24.3.0,<25",
     ],
     entry_points={"ape_cli_subcommands": ["ape_keyring=ape_keyring._cli:cli"]},
     python_requires=">=3.8,<4",
@@ -79,8 +81,8 @@ setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
 )

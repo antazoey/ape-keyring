@@ -9,7 +9,7 @@ This guide demonstrates how to use `ape-keyring` as an account plugin and secret
 
 ## Dependencies
 
-- [python3](https://www.python.org/downloads) version 3.8 or greater, python3-dev
+- [python3](https://www.python.org/downloads) version 3.9 or greater, python3-dev
 
 ## Installation
 
@@ -26,12 +26,14 @@ pip install ape-keyring
 You can clone the repository and use [`setuptools`](https://github.com/pypa/setuptools) for the most up-to-date version:
 
 ```bash
-git clone https://github.com/ApeWorX/ape-keyring.git
+git clone https://github.com/antazoey/ape-keyring.git
 cd ape_keyring
 python3 setup.py install
 ```
 
 ## Quick Usage
+
+Use `ape-keyring` for both accounts and secrets.
 
 ### Accounts
 

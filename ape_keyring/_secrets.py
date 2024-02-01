@@ -48,11 +48,11 @@ class SecretManager(ManagerAccessMixin):
     @property
     def config(self) -> KeyringConfig:
         raw_config = load_config(self._path / "ape-config.yaml")
-        return KeyringConfig.parse_obj(raw_config.get("keyring", {}))
+        return KeyringConfig.model_validate(raw_config.get("keyring", {}))
 
     @property
     def do_set_env_vars(self) -> bool:
-        stored_value = self.config.dict().get("set_env_vars") or "f"
+        stored_value = self.config.model_dump(mode="json", by_alias=True).get("set_env_vars") or "f"
         return str(stored_value).lower() in ["1", "true", "t"]
 
     def get_secret(self, key, scope: Union[str, Scope] = Scope.GLOBAL) -> str:

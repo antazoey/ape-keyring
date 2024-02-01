@@ -48,7 +48,8 @@ def test_set_autosign(keyring_account, eip191_message, runner):
 
 def test_delete(cli, runner, keyring_account):
     result = runner.invoke(cli, ["keyring", "accounts", "delete", keyring_account.alias])
-    assert f"SUCCESS: Account '{keyring_account.alias}' removed from keying" in result.output
+    assert "SUCCESS" in result.output
+    assert f"Account '{keyring_account.alias}' removed from keying" in result.output
 
     # Verify account is NOT listed in 'list' command
     result = runner.invoke(cli, ["keyring", "accounts", "list"])
