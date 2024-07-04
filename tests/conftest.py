@@ -1,6 +1,3 @@
-import tempfile
-from pathlib import Path
-
 import ape
 import keyring.backend
 import pytest
@@ -11,15 +8,16 @@ from ape_keyring._secrets import get_secret_manager
 from ape_keyring.storage import SecretStorage
 from ape_keyring.testing import EphemeralBackend
 
-ape.config.DATA_FOLDER = Path(tempfile.mkdtemp()).resolve()
-TEMP_DATA_FOLDER = Path(tempfile.mkdtemp()).resolve()
-PROJECT_DIRECTORY = Path(__file__).parent
+
+@pytest.fixture(scope="session", autouse=True)
+def config():
+    with ape.config.isolate_date_folder():
+        yield config
 
 
 @pytest.fixture(scope="session", autouse=True)
-def from_tests_directory(config):
-    with config.using_project(PROJECT_DIRECTORY):
-        yield
+def project():
+    return ape.project
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -35,8 +33,8 @@ def storage():
 
 
 @pytest.fixture(scope="session", autouse=True)
-def secret_manager(container, storage):
-    return get_secret_manager(PROJECT_DIRECTORY, storage=storage)
+def secret_manager(container, storage, project):
+    return get_secret_manager(project.path, storage=storage)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -49,11 +47,6 @@ def container(accounts, storage):
 @pytest.fixture(scope="session")
 def accounts():
     return ape.accounts
-
-
-@pytest.fixture(scope="session")
-def config():
-    return ape.config
 
 
 @pytest.fixture

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
 extras_require = {
@@ -10,10 +9,10 @@ extras_require = {
         "hypothesis>=6.2.0,<7.0",  # Strategy-based fuzzer
     ],
     "lint": [
-        "black>=24.1.1",  # auto-formatter and linter
-        "mypy>=1.8.0,<2",  # Static type analyzer
+        "black>=24.4.2",  # auto-formatter and linter
+        "mypy>=1.10.1,<2",  # Static type analyzer
         "types-setuptools",  # Needed for mypy typeshed
-        "flake8>=7.0.0",  # Style linter
+        "flake8>=7.1.0",  # Style linter
         "isort>=5.10.1",  # Import sorting linter
         "mdformat>=0.7.17",  # Auto-formatter for markdown
         "mdformat-gfm>=0.3.5",  # Needed for formatting GitHub-flavored markdown
@@ -58,7 +57,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "click",  # Use same version as eth-ape
-        "eth-ape>=0.7.7,<0.8",
+        "eth-ape>=0.8.8,<0.9",
         "eth-account",  # Use same version as eth-ape
         "eth-utils",  # Use same version as eth-ape
         "eip712",  # Use same version as eth-ape
