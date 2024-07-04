@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 from ape.utils import ManagerAccessMixin, load_config
 
@@ -36,12 +36,12 @@ class SecretManager(ManagerAccessMixin):
         return self.project_keys or self.global_keys  # type: ignore
 
     @property
-    def project_keys(self) -> List[str]:
+    def project_keys(self) -> list[str]:
         keys = self._storage.keys
         return [k.replace(self._project_key, "") for k in keys if self._project_key in k]
 
     @property
-    def global_keys(self) -> List[str]:
+    def global_keys(self) -> list[str]:
         keys = self._storage.keys
         return [k for k in keys if k not in self.project_keys and self._project_key_prefix not in k]
 

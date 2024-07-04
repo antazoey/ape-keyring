@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 import keyring
 from ape.logging import logger
@@ -48,14 +48,14 @@ class SecretStorage(ManagerAccessMixin):
         return self.data_folder / "data.json"
 
     @property
-    def plugin_data(self) -> Dict:
+    def plugin_data(self) -> dict:
         if self.data_file_path.is_file():
             return json.loads(self.data_file_path.read_text())
 
         return {}
 
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> list[str]:
         """
         A list of stored item keys. Each key can unlock a secret.
 
@@ -105,7 +105,7 @@ class SecretStorage(ManagerAccessMixin):
         for key in self.keys:
             _delete_secret(key)
 
-    def _track(self, new_keys: List[str]):
+    def _track(self, new_keys: list[str]):
         self._store_public_data(self._tracker_key, new_keys)
 
     def _store_public_data(self, key: str, value: Any):

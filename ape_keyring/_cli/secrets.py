@@ -1,5 +1,3 @@
-from typing import List
-
 import click
 from ape.cli import ape_cli_context
 
@@ -22,7 +20,7 @@ def _list(cli_ctx):
         cli_ctx.logger.warning("No secrets found.")
         return
 
-    def output_secret_list(header: str, secret_keys: List[str]) -> bool:
+    def output_secret_list(header: str, secret_keys: list[str]) -> bool:
         if not secret_keys:
             return False
 

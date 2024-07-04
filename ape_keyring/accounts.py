@@ -1,4 +1,5 @@
-from typing import Any, Iterator, Optional
+from collections.abc import Iterator
+from typing import Any, Optional
 
 from ape.api import AccountAPI, AccountContainerAPI, TransactionAPI
 from ape.exceptions import AccountsError
