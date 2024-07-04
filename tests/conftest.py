@@ -11,8 +11,8 @@ from ape_keyring.testing import EphemeralBackend
 
 @pytest.fixture(scope="session", autouse=True)
 def config():
-    with ape.config.isolate_date_folder():
-        yield config
+    with ape.config.isolate_data_folder():
+        yield ape.config
 
 
 @pytest.fixture(scope="session", autouse=True)

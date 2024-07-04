@@ -10,7 +10,7 @@ def eip191_message():
 
 def test_import(cli, runner, test_account, container, non_existing_alias):
     result = runner.invoke(
-        cli, ["keyring", "accounts", "import", non_existing_alias], input=test_account.private_key
+        cli, ("keyring", "accounts", "import", non_existing_alias), input=test_account.private_key
     )
     assert not result.exit_code, result.output
     assert "SUCCESS" in result.output
@@ -19,7 +19,7 @@ def test_import(cli, runner, test_account, container, non_existing_alias):
 
 
 def test_list(cli, runner, keyring_account, existing_alias):
-    result = runner.invoke(cli, ["keyring", "accounts", "list"])
+    result = runner.invoke(cli, ("keyring", "accounts", "list"))
     assert result.exit_code == 0, result.output
     assert existing_alias in result.output
 
@@ -47,10 +47,10 @@ def test_set_autosign(keyring_account, eip191_message, runner):
 
 
 def test_delete(cli, runner, keyring_account):
-    result = runner.invoke(cli, ["keyring", "accounts", "delete", keyring_account.alias])
+    result = runner.invoke(cli, ("keyring", "accounts", "delete", keyring_account.alias))
     assert "SUCCESS" in result.output
     assert f"Account '{keyring_account.alias}' removed from keying" in result.output
 
     # Verify account is NOT listed in 'list' command
-    result = runner.invoke(cli, ["keyring", "accounts", "list"])
+    result = runner.invoke(cli, ("keyring", "accounts", "list"))
     assert keyring_account.alias not in result.output
