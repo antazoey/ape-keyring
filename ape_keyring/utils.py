@@ -1,13 +1,15 @@
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import click
 from ape.logging import logger
 from eth_account import Account as EthAccount
-from eth_account.signers.local import LocalAccount
 from eth_utils import to_bytes
 
+if TYPE_CHECKING:
+    from eth_account.signers.local import LocalAccount
 
-def get_eth_account(private_key: str) -> Optional[LocalAccount]:
+
+def get_eth_account(private_key: str) -> Optional["LocalAccount"]:
     try:
         return EthAccount.from_key(to_bytes(hexstr=private_key))
     except Exception as err:

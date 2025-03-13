@@ -9,18 +9,18 @@ extras_require = {
         "hypothesis>=6.2.0,<7.0",  # Strategy-based fuzzer
     ],
     "lint": [
-        "black>=24.4.2",  # auto-formatter and linter
-        "mypy>=1.10.1,<2",  # Static type analyzer
+        "black>=25.1.0",  # auto-formatter and linter
+        "mypy>=1.15.0,<2",  # Static type analyzer
         "types-setuptools",  # Needed for mypy typeshed
-        "flake8>=7.1.0",  # Style linter
+        "flake8>=7.1.2",  # Style linter
         "isort>=5.10.1",  # Import sorting linter
         "mdformat>=0.7.17",  # Auto-formatter for markdown
         "mdformat-gfm>=0.3.5",  # Needed for formatting GitHub-flavored markdown
         "mdformat-frontmatter>=0.4.1",  # Needed for frontmatters-style headers in issue templates
-        "mdformat-pyproject>=0.0.1",  # Allows configuring in pyproject.toml
+        "mdformat-pyproject>=0.0.2",  # Allows configuring in pyproject.toml
     ],
     "release": [  # `release` GitHub Action job uses this
-        "setuptools",  # Installation tool
+        "setuptools>=75.6.0",  # Installation tool
         "wheel",  # Packaging tool
         "twine",  # Package upload tool
     ],
@@ -57,14 +57,14 @@ setup(
     include_package_data=True,
     install_requires=[
         "click",  # Use same version as eth-ape
-        "eth-ape>=0.8.8,<0.9",
+        "eth-ape>=0.8.29,<0.9",
         "eth-account",  # Use same version as eth-ape
         "eth-utils",  # Use same version as eth-ape
         "eip712",  # Use same version as eth-ape
-        "keyring>=24.3.0,<25",
+        "keyring>=25.6.0,<26",
     ],
     entry_points={"ape_cli_subcommands": ["ape_keyring=ape_keyring._cli:cli"]},
-    python_requires=">=3.8,<4",
+    python_requires=">=3.9,<4",
     extras_require=extras_require,
     py_modules=["ape_keyring"],
     license="Apache-2.0",
@@ -83,5 +83,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
     ],
 )
